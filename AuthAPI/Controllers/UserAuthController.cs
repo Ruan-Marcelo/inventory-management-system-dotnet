@@ -87,14 +87,17 @@ namespace AuthAPI.Controllers
             var user = await _userManager.FindByEmailAsync(loginModel.Email);
             if (user == null)
             {
+                //401
                 return Unauthorized(new { success = false, message = "Nome de usuário ou senha inválidos" });
             }
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginModel.Password, false);
             if (!result.Succeeded)
             {
+                //401
                 return Unauthorized(new { success = false, message = "Nome de usuário ou senha inválidos" });
             }
 
+            //200
             var token = GeneratedJwtToken(user);
             return Ok(new { success = true, token });
         }
@@ -102,8 +105,9 @@ namespace AuthAPI.Controllers
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout()
         {
+            //200 de prima baby
             await _signInManager.SignOutAsync();
-            return Ok("User logged out successfully.");
+            return Ok("Usuário desconectado com sucesso.");
         }
         private string GeneratedJwtToken(ApplicationUser user)
         {
@@ -116,7 +120,7 @@ namespace AuthAPI.Controllers
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);//sigilo d token e segurança
 
             var token = new JwtSecurityToken(
                 //issuer: _jwtIssuer,
@@ -130,3 +134,6 @@ namespace AuthAPI.Controllers
 
     }
 }
+
+//Ruan se der erro 405 e vc não lembrar de colocar o [HttpPost] ou [HttpGet] ou outro verbo http,
+//é pq vc esqueceu de colocar o verbo http no método do controller, ai ele não sabe qual verbo usar e da erro 405, ai é só colocar o verbo http que ele vai funcionar (presta atenção ruanzito lindo).

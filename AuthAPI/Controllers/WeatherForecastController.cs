@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+//Sem token jwt não entra aqui 
 namespace AuthAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize] //401
     public class WeatherForecastController : ControllerBase
     {
         private static readonly string[] Summaries = new[]
