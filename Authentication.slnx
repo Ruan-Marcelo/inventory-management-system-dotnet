@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="AuthAPI/AuthAPI.csproj" />
+  <Project Path="AuthUI/AuthUI.csproj" Id="5252b01c-de1c-443c-a4c8-5390f20fdbf8" />
 </Solution>
