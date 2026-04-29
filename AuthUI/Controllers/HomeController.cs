@@ -1,4 +1,5 @@
 using AuthUI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -23,6 +24,10 @@ namespace AuthUI.Controllers
             return View();
         }
        public IActionResult Login()
+        {
+            return View();
+        }
+        public IActionResult ProtectedData()
         {
             return View();
         }
