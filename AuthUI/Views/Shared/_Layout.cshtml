@@ -22,15 +22,15 @@
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item" id="loginLink">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Login">Logar</a>
-                        </li>
-                        <li class="nav-item" id="registerLink">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Registrar">Registrar</a>
-                        </li>
+                        </li>                    
                         <li class="nav-item" id="logoutLink" style="display: none;">
-                            <a class="nav-link text-dark">Logout</a>
+                            <a class="nav-link text-dark">Sair</a>
                         </li>
                         <li class="nav-item" id="protectedLink" style="display: none;">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="ProtectedData">Protected Data</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="ProtectedData">Dados Protegidos</a>
+                        </li>
+                        <li class="nav-item" id="registerLink" style="display: none;">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Registrar">Registrar</a>
                         </li>
                     </ul>
                 </div>
@@ -61,7 +61,7 @@
             if (token) {
                 document.getElementById("logoutLink").style.display = 'block'; // Show logout button
                 document.getElementById("loginLink").style.display = 'none';   // Hide login link
-                document.getElementById("registerLink").style.display = 'none'; // Hide register link
+                document.getElementById("registerLink").style.display = 'block'; // Hide register link
                 document.getElementById("protectedLink").style.display = 'block'; // Hide register link
             }
 

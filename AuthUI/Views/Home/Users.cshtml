@@ -1,0 +1,97 @@
+﻿@{
+    ViewData["Title"] = "Usuários";
+    Layout = "_DashboardLayout";
+}
+
+<div class="bg-white p-6 rounded-xl shadow">
+
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Lista de Usuários</h2>
+
+        <button onclick="loadUsers()"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            Atualizar
+        </button>
+    </div>
+
+    <!-- TABELA -->
+    <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+
+            <thead>
+                <tr class="bg-gray-100 text-left">
+                    <th class="p-3">ID</th>
+                    <th class="p-3">Nome</th>
+                    <th class="p-3">Email</th>
+                </tr>
+            </thead>
+
+            <tbody id="usersTable">
+                <!-- dados via JS -->
+            </tbody>
+
+        </table>
+    </div>
+
+    <div id="status" class="mt-4 text-sm text-gray-500"></div>
+
+</div>
+
+@section Scripts {
+    <script>
+
+        // 🔐 pega token global
+        const token = localStorage.getItem("token");
+
+        // 🚀 carregar usuários
+        async function loadUsers() {
+
+            const table = document.getElementById("usersTable");
+            const status = document.getElementById("status");
+
+            table.innerHTML = "<tr><td class='p-3'>Carregando...</td></tr>";
+
+            try {
+                const response = await fetch("https://localhost:7004/api/Users", {
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem("token");
+                    window.location.href = "/Home/Login";
+                    return;
+                }
+
+                if (!response.ok) {
+                    status.innerHTML = "Erro ao carregar usuários.";
+                    return;
+                }
+
+                const data = await response.json();
+
+                table.innerHTML = "";
+
+                data.forEach(user => {
+                    table.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3">${user.id}</td>
+                            <td class="p-3">${user.name}</td>
+                            <td class="p-3">${user.email}</td>
+                        </tr>
+                    `;
+                });
+
+                status.innerHTML = `Total de usuários: ${data.length}`;
+
+            } catch (error) {
+                status.innerHTML = "Erro de conexão com servidor.";
+            }
+        }
+
+        // 🔁 carrega automático ao abrir página
+        loadUsers();
+
+    </script>
+}

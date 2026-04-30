@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Dashboard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+        body {
+        font-family: 'Manrope', sans-serif;
+        }
+
+        .menu-item {
+        display: block;
+        padding: 10px;
+        border-radius: 8px;
+        transition: 0.2s;
+        }
+
+        .menu-item:hover {
+        background: rgba(255,255,255,0.1);
+        }
+
+        .active {
+        background: rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 flex">
+
+    <!-- SIDEBAR ÚNICA -->
+    <aside id="sidebar"
+           class="w-64 h-screen bg-blue-900 text-white fixed left-0 top-0 transition-all duration-300 shadow-lg">
+
+        <!-- HEADER SIDEBAR -->
+        <div class="p-6 text-xl font-bold border-b border-blue-700 flex justify-between items-center">
+            <span id="logoText">AVA</span>
+
+            <button onclick="toggleSidebar()" class="text-white">
+                ☰
+            </button>
+        </div>
+
+        <!-- MENU -->
+        <nav class="p-4 space-y-2">
+
+            <a href="/Home/Index" class="menu-item">🏠 Home</a>
+            <a href="/Home/ProtectedData" class="menu-item">📦 Estoque</a>
+            <a href="/Home/Users" class="menu-item">👤 Usuários</a>
+
+            <a href="#" id="logoutBtn" class="menu-item mt-6 hover:bg-red-600">
+                🚪 Logout
+            </a>
+
+        </nav>
+    </aside>
+
+    <!-- CONTEÚDO -->
+    <div id="content" class="ml-64 w-full transition-all duration-300">
+
+        <!-- TOPBAR -->
+        <header class="bg-white shadow p-4 flex justify-between">
+            <h1 class="text-lg font-semibold">@ViewData["Title"]</h1>
+        </header>
+
+        <!-- BODY -->
+        <main class="p-6">
+            @RenderBody()
+        </main>
+
+    </div>
+
+    @RenderSection("Scripts", required: false)
+
+    <script>
+        // =========================
+        // 🔐 BLOQUEIO SEM TOKEN
+        // =========================
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+        window.location.href = "/Home/Login";
+        }
+
+        // =========================
+        // 🚪 LOGOUT GLOBAL
+        // =========================
+        document.getElementById("logoutBtn").addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        const confirmLogout = confirm("Deseja sair?");
+        if (!confirmLogout) return;
+
+        await fetch('https://localhost:7004/api/UserAuth/Logout', {
+        method: 'POST'
+        });
+
+        localStorage.removeItem("token");
+        window.location.href = "/Home/Login";
+        });
+
+        // =========================
+        // 🎯 MENU ATIVO AUTOMÁTICO
+        // =========================
+        const links = document.querySelectorAll(".menu-item");
+
+        links.forEach(link => {
+        if (link.href === window.location.href) {
+        link.classList.add("active");
+        }
+        });
+
+        // =========================
+        // 🎯 SIDEBAR COLAPSÁVEL
+        // =========================
+        let collapsed = false;
+
+        function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const content = document.getElementById("content");
+        const logoText = document.getElementById("logoText");
+
+        collapsed = !collapsed;
+
+        if (collapsed) {
+        sidebar.classList.remove("w-64");
+        sidebar.classList.add("w-20");
+
+        content.classList.remove("ml-64");
+        content.classList.add("ml-20");
+
+        logoText.style.display = "none";
+
+        } else {
+        sidebar.classList.add("w-64");
+        sidebar.classList.remove("w-20");
+
+        content.classList.add("ml-64");
+        content.classList.remove("ml-20");
+
+        logoText.style.display = "block";
+        }
+        }
+
+        // =========================
+        // 🔁 API FETCH SEGURA
+        // =========================
+        async function apiFetch(url, options = {}) {
+
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(url, {
+        ...options,
+        headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+        ...options.headers
+        }
+        });
+
+        if (response.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/Home/Login";
+        }
+
+        return response;
+        }
+    </script>
+
+</body>
+</html>
