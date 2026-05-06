@@ -7,6 +7,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
         body {
@@ -48,12 +49,12 @@
         <!-- MENU -->
         <nav class="p-4 space-y-2">
 
-            <a href="/Home/Index" class="menu-item"> Home</a>
-            <a href="/Home/ProtectedData" class="menu-item"> Estoque</a>
-            <a href="/Home/Users" class="menu-item"> Usuários</a>
+            <a href="/Home/Index" class="menu-item"><i class="fa fa-tachometer" aria-hidden="true"></i>  Home</a>
+            <a href="/Home/ProtectedData" class="menu-item"><i class="fa fa-list-alt" aria-hidden="true"></i>  Estoque</a>
+            @* <a href="/Home/Users" class="menu-item"><i class="fa fa-users" aria-hidden="true"></i>  Usuários</a> *@
 
             <a href="#" id="logoutBtn" class="menu-item mt-6 hover:bg-red-600">
-                 Sair
+                <i class="fa fa-external-link" aria-hidden="true"></i>   Sair
             </a>
 
         </nav>
