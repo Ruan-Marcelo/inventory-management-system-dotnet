@@ -1,4 +1,5 @@
-﻿namespace AuthAPI.Models
+﻿using System.Text.Json.Serialization;
+namespace AuthAPI.Models
 {
     public class Produto
     {
@@ -18,6 +19,7 @@
 
         public Categoria? Categoria { get; set; }
 
+        [JsonIgnore]
         public List<Movimentacao>? Movimentacoes { get; set; }
     }
 }
