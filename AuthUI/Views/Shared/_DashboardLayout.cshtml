@@ -50,7 +50,11 @@
         <nav class="p-4 space-y-2">
 
             <a href="/Home/Index" class="menu-item"><i class="fa fa-tachometer" aria-hidden="true"></i>  Home</a>
-            <a href="/Home/ProtectedData" class="menu-item"><i class="fa fa-list-alt" aria-hidden="true"></i>  Estoque</a>
+            <a href="/Home/Produtos" class="menu-item"><i class="fa fa-list-alt" aria-hidden="true"></i>  Estoque</a>
+            <a href="/Home/Movimentacoes" class="menu-item">
+                <i class="fa fa-clock-rotate-left"></i>
+                Movimentações
+            </a>
             @* <a href="/Home/Users" class="menu-item"><i class="fa fa-users" aria-hidden="true"></i>  Usuários</a> *@
 
             <a href="#" id="logoutBtn" class="menu-item mt-6 hover:bg-red-600">
@@ -74,8 +78,6 @@
         </main>
 
     </div>
-
-    @RenderSection("Scripts", required: false)
 
     <script>
         // =========================
@@ -171,6 +173,6 @@
         return response;
         }
     </script>
-
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

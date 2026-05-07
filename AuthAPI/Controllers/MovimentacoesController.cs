@@ -21,12 +21,12 @@ public class MovimentacoesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var lista = await _context.Movimentacoes
-            .Include(m => m.Produto)
-            .OrderByDescending(m => m.DataMovimentacao)
+        var movimentacoes = await _context.Movimentacoes
+            .Include(x => x.Produto)
+            .OrderByDescending(x => x.DataMovimentacao)
             .ToListAsync();
 
-        return Ok(lista);
+        return Ok(movimentacoes);
     }
 
     // entrada e saída

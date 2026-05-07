@@ -1,0 +1,136 @@
+﻿@{
+    ViewData["Title"] = "Movimentações";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="mb-6 flex flex-col md:flex-row gap-4 justify-between">
+
+    <h1 class="text-2xl font-bold text-gray-800">
+        Movimentações
+    </h1>
+
+    <div class="flex gap-3">
+
+        <input type="text"
+               id="filtro"
+               placeholder="Buscar produto..."
+               class="border rounded-lg px-4 py-2"
+               onkeyup="filtrarMovimentacoes()" />
+
+        <select id="tipoFiltro"
+                onchange="filtrarMovimentacoes()"
+                class="border rounded-lg px-4 py-2">
+
+            <option value="">Todos</option>
+            <option value="ENTRADA">Entrada</option>
+            <option value="SAIDA">Saída</option>
+
+        </select>
+
+    </div>
+
+</div>
+
+<div class="bg-white rounded-xl shadow overflow-hidden">
+
+    <table class="w-full">
+
+        <thead class="bg-gray-100">
+
+            <tr>
+                <th class="p-4 text-left">Produto</th>
+                <th class="p-4 text-left">Tipo</th>
+                <th class="p-4 text-left">Quantidade</th>
+                <th class="p-4 text-left">Data</th>
+            </tr>
+
+        </thead>
+
+        <tbody id="tabelaMovimentacoes">
+        </tbody>
+
+    </table>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        const API = "https://localhost:7004/api";
+
+        let todasMovimentacoes = [];
+
+        async function carregarMovimentacoes() {
+
+            const response = await apiFetch(`${API}/movimentacoes`);
+
+            todasMovimentacoes = await response.json();
+
+            renderizarMovimentacoes(todasMovimentacoes);
+        }
+
+        function renderizarMovimentacoes(lista) {
+
+            const tabela = document.getElementById("tabelaMovimentacoes");
+
+            tabela.innerHTML = "";
+
+            lista.forEach(mov => {
+
+                const cor =
+                    mov.tipo === "ENTRADA"
+                        ? "text-green-600"
+                        : "text-red-600";
+
+                tabela.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+
+                        <td class="p-4">
+                            ${mov.produto?.nome || 'Produto'}
+                        </td>
+
+                        <td class="p-4 ${cor} font-bold">
+                            ${mov.tipo}
+                        </td>
+
+                        <td class="p-4">
+                            ${mov.quantidade}
+                        </td>
+
+                        <td class="p-4">
+                            ${new Date(mov.dataMovimentacao)
+                                .toLocaleString('pt-BR')}
+                        </td>
+
+                    </tr>
+                `;
+            });
+        }
+
+        function filtrarMovimentacoes() {
+
+            const texto = document.getElementById("filtro")
+                .value
+                .toLowerCase();
+
+            const tipo = document.getElementById("tipoFiltro").value;
+
+            let filtradas = todasMovimentacoes.filter(m =>
+                (m.produto?.nome || '')
+                    .toLowerCase()
+                    .includes(texto)
+            );
+
+            if (tipo) {
+                filtradas = filtradas.filter(m => m.tipo === tipo);
+            }
+
+            renderizarMovimentacoes(filtradas);
+        }
+
+        carregarMovimentacoes();
+
+    </script>
+
+}

@@ -27,6 +27,15 @@ namespace AuthUI.Controllers
         {
             return View();
         }
+        //Estoque real da ava
+        public IActionResult Produtos()
+        {
+            return View();
+        }
+        public IActionResult Movimentacoes()
+        {
+            return View();
+        }
         public IActionResult ProtectedData()
         {
             return View();

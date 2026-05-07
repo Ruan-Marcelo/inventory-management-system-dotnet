@@ -1,0 +1,447 @@
+﻿@{
+    ViewData["Title"] = "Produtos";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+
+    <h1 class="text-2xl font-bold text-gray-800">
+        Produtos
+    </h1>
+
+    <div class="flex gap-3 flex-wrap">
+
+        <button onclick="abrirModal()"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+            + Novo Produto
+        </button>
+
+        <button onclick="carregarInativos()"
+                class="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg">
+            Produtos Inativos
+        </button>
+
+    </div>
+
+    <div class="flex gap-3 flex-wrap">
+
+        <input type="text"
+               id="filtroProduto"
+               placeholder="Buscar produto..."
+               class="border rounded-lg px-4 py-2 w-64"
+               onkeyup="filtrarProdutos()" />
+
+        <select id="filtroEstoque"
+                onchange="filtrarProdutos()"
+                class="border rounded-lg px-4 py-2">
+
+            <option value="">Todos</option>
+            <option value="baixo">Estoque Baixo</option>
+            <option value="medio">Estoque Médio</option>
+            <option value="alto">Estoque Alto</option>
+
+        </select>
+
+    </div>
+
+</div>
+
+<!-- TABELA -->
+<div class="bg-white rounded-xl shadow overflow-hidden">
+
+    <table class="w-full">
+
+        <thead class="bg-gray-100 text-gray-700">
+            <tr>
+                <th class="p-4 text-left">Nome</th>
+                <th class="p-4 text-left">Preço</th>
+                <th class="p-4 text-left">Quantidade</th>
+                <th class="p-4 text-left">Ações</th>
+            </tr>
+        </thead>
+
+        <tbody id="tabelaProdutos">
+        </tbody>
+
+    </table>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal"
+     class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl">
+
+        <h2 id="tituloModal" class="text-xl font-bold mb-4">
+            Novo Produto
+        </h2>
+
+        <div class="space-y-4">
+
+            <input id="nome"
+                   type="text"
+                   placeholder="Nome"
+                   class="w-full border rounded-lg p-3" />
+
+            <input id="descricao"
+                   type="text"
+                   placeholder="Descrição"
+                   class="w-full border rounded-lg p-3" />
+
+            <input id="preco"
+                   type="number"
+                   placeholder="Preço"
+                   class="w-full border rounded-lg p-3" />
+
+            <input id="quantidade"
+                   type="number"
+                   placeholder="Quantidade"
+                   class="w-full border rounded-lg p-3" />
+
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+
+            <button onclick="fecharModal()"
+                    class="bg-gray-300 px-4 py-2 rounded-lg">
+                Cancelar
+            </button>
+
+            <button onclick="salvarProduto()"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                Salvar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        const API = "https://localhost:7004/api";
+
+        let editandoId = null;
+
+        let todosProdutos = [];
+
+        // =========================
+        // 🔍 CARREGAR PRODUTOS
+        // =========================
+        async function carregarProdutos() {
+
+            const response = await apiFetch(`${API}/produtos`);
+
+            todosProdutos = await response.json();
+
+            renderizarProdutos(todosProdutos);
+        }
+
+        // =========================
+        // 📦 CARREGAR INATIVOS
+        // =========================
+        async function carregarInativos() {
+
+            const response = await apiFetch(`${API}/produtos/inativos`);
+
+            const produtos = await response.json();
+
+            const tabela = document.getElementById("tabelaProdutos");
+
+            tabela.innerHTML = "";
+
+            produtos.forEach(produto => {
+
+                tabela.innerHTML += `
+                    <tr class="border-b bg-gray-50">
+
+                        <td class="p-4 text-gray-500">
+                            ${produto.nome}
+                        </td>
+
+                        <td class="p-4">
+                            R$ ${produto.preco}
+                        </td>
+
+                        <td class="p-4">
+                            ${produto.quantidade}
+                        </td>
+
+                        <td class="p-4">
+
+                            <button onclick="reativarProduto(${produto.id})"
+                                    class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">
+                                Reativar
+                            </button>
+
+                        </td>
+
+                    </tr>
+                `;
+            });
+        }
+
+        // =========================
+        // 🎨 RENDERIZAR PRODUTOS
+        // =========================
+        function renderizarProdutos(produtos) {
+
+            const tabela = document.getElementById("tabelaProdutos");
+
+            tabela.innerHTML = "";
+
+            produtos.forEach(produto => {
+
+                let corEstoque = "text-green-600 font-bold";
+
+                if (produto.quantidade <= 5) {
+                    corEstoque = "text-red-600 font-bold";
+                }
+                else if (produto.quantidade <= 10) {
+                    corEstoque = "text-yellow-500 font-bold";
+                }
+
+                tabela.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+
+                        <td class="p-4">
+                            ${produto.nome}
+                        </td>
+
+                        <td class="p-4">
+                            R$ ${produto.preco}
+                        </td>
+
+                        <td class="p-4 ${corEstoque}">
+                            ${produto.quantidade}
+                        </td>
+
+                        <td class="p-4 flex gap-2 flex-wrap">
+
+                            <button onclick="movimentar(${produto.id}, 'ENTRADA')"
+                                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">
+                                Entrada
+                            </button>
+
+                            <button onclick="movimentar(${produto.id}, 'SAIDA')"
+                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                                Saída
+                            </button>
+
+                            <button onclick='editarProduto(${JSON.stringify(produto)})'
+                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
+                                Editar
+                            </button>
+
+                            <button onclick="excluirProduto(${produto.id})"
+                                    class="bg-gray-800 hover:bg-black text-white px-3 py-1 rounded">
+                                Inativar
+                            </button>
+
+                        </td>
+
+                    </tr>
+                `;
+            });
+        }
+
+        // =========================
+        // 🔎 FILTRAR PRODUTOS
+        // =========================
+        function filtrarProdutos() {
+
+            const texto = document.getElementById("filtroProduto")
+                .value
+                .toLowerCase();
+
+            const estoque = document.getElementById("filtroEstoque").value;
+
+            let filtrados = todosProdutos.filter(p =>
+                p.nome.toLowerCase().includes(texto)
+            );
+
+            if (estoque === "baixo") {
+                filtrados = filtrados.filter(p => p.quantidade <= 5);
+            }
+
+            if (estoque === "medio") {
+                filtrados = filtrados.filter(p =>
+                    p.quantidade > 5 && p.quantidade <= 10
+                );
+            }
+
+            if (estoque === "alto") {
+                filtrados = filtrados.filter(p => p.quantidade > 10);
+            }
+
+            renderizarProdutos(filtrados);
+        }
+
+        // =========================
+        // 💾 SALVAR PRODUTO
+        // =========================
+        async function salvarProduto() {
+
+            const produto = {
+
+                nome: document.getElementById("nome").value,
+                descricao: document.getElementById("descricao").value,
+                preco: parseFloat(document.getElementById("preco").value),
+                quantidade: parseInt(document.getElementById("quantidade").value)
+
+            };
+
+            if (editandoId) {
+
+                await apiFetch(`${API}/produtos/${editandoId}`, {
+
+                    method: "PUT",
+
+                    body: JSON.stringify({
+                        id: editandoId,
+                        ...produto
+                    })
+
+                });
+
+            } else {
+
+                await apiFetch(`${API}/produtos`, {
+
+                    method: "POST",
+
+                    body: JSON.stringify(produto)
+
+                });
+            }
+
+            fecharModal();
+
+            carregarProdutos();
+        }
+
+        // =========================
+        // ✏️ EDITAR PRODUTO
+        // =========================
+        function editarProduto(produto) {
+
+            editandoId = produto.id;
+
+            document.getElementById("tituloModal").innerText = "Editar Produto";
+
+            document.getElementById("nome").value = produto.nome;
+            document.getElementById("descricao").value = produto.descricao;
+            document.getElementById("preco").value = produto.preco;
+            document.getElementById("quantidade").value = produto.quantidade;
+
+            abrirModal();
+        }
+
+        // =========================
+        // ❌ INATIVAR PRODUTO
+        // =========================
+        async function excluirProduto(id) {
+
+            const confirmar = confirm("Deseja inativar este produto?");
+
+            if (!confirmar) return;
+
+            await apiFetch(`${API}/produtos/${id}`, {
+
+                method: "DELETE"
+
+            });
+
+            carregarProdutos();
+        }
+
+        // =========================
+        // ♻️ REATIVAR PRODUTO
+        // =========================
+        async function reativarProduto(id) {
+
+            await apiFetch(`${API}/produtos/reativar/${id}`, {
+
+                method: "PUT"
+
+            });
+
+            alert("Produto reativado!");
+
+            carregarProdutos();
+        }
+
+        // =========================
+        // 🔄 MOVIMENTAÇÃO
+        // =========================
+        async function movimentar(produtoId, tipo) {
+
+            const quantidade = prompt(`Quantidade para ${tipo}:`);
+
+            if (!quantidade) return;
+
+            await apiFetch(`${API}/movimentacoes`, {
+
+                method: "POST",
+
+                body: JSON.stringify({
+
+                    produtoId,
+                    tipo,
+                    quantidade: parseInt(quantidade)
+
+                })
+
+            });
+
+            carregarProdutos();
+        }
+
+        // =========================
+        // 🧹 LIMPAR FORM
+        // =========================
+        function limparFormulario() {
+
+            editandoId = null;
+
+            document.getElementById("tituloModal").innerText = "Novo Produto";
+
+            document.getElementById("nome").value = "";
+            document.getElementById("descricao").value = "";
+            document.getElementById("preco").value = "";
+            document.getElementById("quantidade").value = "";
+        }
+
+        // =========================
+        // 🎯 MODAL
+        // =========================
+        function abrirModal() {
+
+            document.getElementById("modal")
+                .classList.remove("hidden");
+
+            document.getElementById("modal")
+                .classList.add("flex");
+        }
+
+        function fecharModal() {
+
+            limparFormulario();
+
+            document.getElementById("modal")
+                .classList.add("hidden");
+
+            document.getElementById("modal")
+                .classList.remove("flex");
+        }
+
+        // 🚀 INIT
+        carregarProdutos();
+
+    </script>
+
+}
