@@ -3,3 +3,425 @@
     ViewData["Title"] = "Dashboard";
 }
 
+<div class="space-y-6">
+
+
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">
+                Dashboard
+            </h1>
+
+            <p class="text-gray-500">
+                Controle geral da ONG AVA
+            </p>
+        </div>
+
+        <div class="bg-blue-600 text-white px-4 py-2 rounded-xl shadow">
+            <span id="dataAtual"></span>
+        </div>
+
+    </div>
+
+    <!-- ALERTAS -->
+    <div class="bg-white rounded-2xl shadow p-6">
+
+        <div class="flex items-center justify-between mb-6">
+
+            <h2 class="text-xl font-bold text-gray-800">
+                Alertas do Sistema
+            </h2>
+
+            <i class="fa fa-bell text-red-500 text-xl"></i>
+
+        </div>
+
+        <div id="listaAlertas" class="space-y-3">
+        </div>
+
+    </div>
+
+    <!-- CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+
+        <!-- TOTAL PRODUTOS -->
+        <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-blue-500">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <p class="text-gray-500 text-sm">
+                        Total Produtos
+                    </p>
+
+                    <h2 id="totalProdutos"
+                        class="text-3xl font-bold text-gray-800 mt-2">
+                        0
+                    </h2>
+                </div>
+
+                <div class="bg-blue-100 p-4 rounded-xl">
+                    <i class="fa fa-box text-blue-600 text-2xl"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ESTOQUE BAIXO -->
+        <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-yellow-500">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <p class="text-gray-500 text-sm">
+                        Estoque Baixo
+                    </p>
+
+                    <h2 id="estoqueBaixo"
+                        class="text-3xl font-bold text-yellow-600 mt-2">
+                        0
+                    </h2>
+                </div>
+
+                <div class="bg-yellow-100 p-4 rounded-xl">
+                    <i class="fa fa-triangle-exclamation text-yellow-600 text-2xl"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- PRODUTOS ESGOTADOS -->
+        <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-red-500">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <p class="text-gray-500 text-sm">
+                        Produtos Esgotados
+                    </p>
+
+                    <h2 id="produtosEsgotados"
+                        class="text-3xl font-bold text-red-600 mt-2">
+                        0
+                    </h2>
+                </div>
+
+                <div class="bg-red-100 p-4 rounded-xl">
+                    <i class="fa fa-xmark text-red-600 text-2xl"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- MOVIMENTAÇÕES -->
+        <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-green-500">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <p class="text-gray-500 text-sm">
+                        Movimentações
+                    </p>
+
+                    <h2 id="totalMovimentacoes"
+                        class="text-3xl font-bold text-green-600 mt-2">
+                        0
+                    </h2>
+                </div>
+
+                <div class="bg-green-100 p-4 rounded-xl">
+                    <i class="fa fa-arrow-right-arrow-left text-green-600 text-2xl"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+        <!-- GRÁFICO ESTOQUE -->
+        <div class="bg-white rounded-2xl shadow p-6">
+
+            <div class="flex items-center justify-between mb-4">
+
+                <h2 class="text-xl font-bold text-gray-800">
+                    Estoque Atual
+                </h2>
+
+                <i class="fa fa-chart-column text-blue-600"></i>
+
+            </div>
+
+            <canvas id="graficoEstoque"></canvas>
+
+        </div>
+
+        <!-- GRÁFICO MOVIMENTAÇÕES -->
+        <div class="bg-white rounded-2xl shadow p-6 max-w-2xl mx-auto">
+
+            <div class="flex items-center justify-between mb-4">
+
+                <h2 class="text-xl font-bold text-gray-800">
+                    Entradas x Saídas
+                </h2>
+
+                <i class="fa fa-chart-pie text-green-600 text-xl"></i>
+
+            </div>
+
+            <div class="h-80">
+                <canvas id="graficoMovimentacoes"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <!-- CHART JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+
+        const API = "https://localhost:7004/api";
+
+        let graficoEstoque = null;
+        let graficoMovimentacoes = null;
+
+        // =========================
+        // 📅 DATA
+        // =========================
+        document.getElementById("dataAtual").innerText =
+        new Date().toLocaleDateString("pt-BR");
+
+        // =========================
+        // 🚀 INIT
+        // =========================
+        carregarDashboard();
+
+        // =========================
+        // 📊 DASHBOARD
+        // =========================
+        async function carregarDashboard() {
+
+        try {
+
+        const produtosResponse = await apiFetch(`${API}/produtos`);
+        const produtos = await produtosResponse.json();
+
+        const movResponse = await apiFetch(`${API}/movimentacoes`);
+        const movimentacoes = await movResponse.json();
+
+        atualizarCards(produtos, movimentacoes);
+
+        gerarAlertas(produtos);
+
+        gerarGraficoEstoque(produtos);
+
+        gerarGraficoMovimentacoes(movimentacoes);
+
+        }
+        catch (erro) {
+
+        console.error(erro);
+
+        alert("Erro ao carregar dashboard.");
+
+        }
+        }
+
+        // =========================
+        // 📦 CARDS
+        // =========================
+        function atualizarCards(produtos, movimentacoes) {
+
+        const estoqueBaixo = produtos.filter(p =>
+        p.quantidade > 0 &&
+        p.quantidade <= p.quantidadeMinima
+        );
+
+        const esgotados = produtos.filter(p =>
+        p.quantidade <= 0
+        );
+
+        document.getElementById("totalProdutos").innerText =
+        produtos.length;
+
+        document.getElementById("estoqueBaixo").innerText =
+        estoqueBaixo.length;
+
+        document.getElementById("produtosEsgotados").innerText =
+        esgotados.length;
+
+        document.getElementById("totalMovimentacoes").innerText =
+        movimentacoes.length;
+        }
+
+        // =========================
+        // 🚨 ALERTAS
+        // =========================
+        function gerarAlertas(produtos) {
+
+        const lista = document.getElementById("listaAlertas");
+
+        lista.innerHTML = "";
+
+        const alertas = produtos.filter(p =>
+        p.quantidade <= p.quantidadeMinima
+        );
+
+        if (alertas.length === 0) {
+
+        lista.innerHTML = `
+        <div class="bg-green-100 text-green-700 p-4 rounded-xl">
+        Nenhum alerta no momento.
+        </div>
+        `;
+
+        return;
+        }
+
+        alertas.forEach(produto => {
+
+        let cor = "yellow";
+
+        let mensagem = "Estoque Baixo";
+
+        if (produto.quantidade <= 0) {
+
+        cor = "red";
+
+        mensagem = "Produto Esgotado";
+        }
+
+        lista.innerHTML += `
+        <div class="border-l-4 border-${cor}-500 bg-${cor}-50 p-4 rounded-xl">
+
+        <div class="flex items-center justify-between">
+
+        <div>
+
+        <h3 class="font-bold text-${cor}-700">
+        ${produto.nome}
+        </h3>
+
+        <p class="text-sm text-gray-600">
+        ${mensagem}
+        </p>
+
+        </div>
+
+        <span class="font-bold text-${cor}-700">
+        ${produto.quantidade}
+        </span>
+
+        </div>
+
+        </div>
+        `;
+        });
+        }
+
+        // =========================
+        // 📈 GRÁFICO ESTOQUE
+        // =========================
+        function gerarGraficoEstoque(produtos) {
+
+        const ctx = document.getElementById("graficoEstoque");
+
+        if (graficoEstoque) {
+        graficoEstoque.destroy();
+        }
+
+        graficoEstoque = new Chart(ctx, {
+
+        type: 'bar',
+
+        data: {
+
+        labels: produtos.map(p => p.nome),
+
+        datasets: [{
+
+        label: 'Quantidade',
+
+        data: produtos.map(p => p.quantidade),
+
+        borderWidth: 1
+
+        }]
+        },
+
+        options: {
+
+        responsive: true,
+
+        plugins: {
+
+        legend: {
+        display: false
+        }
+
+        }
+        }
+        });
+        }
+
+        // =========================
+        // 📊 GRÁFICO MOVIMENTAÇÕES
+        // =========================
+        function gerarGraficoMovimentacoes(movimentacoes) {
+
+        const entradas = movimentacoes.filter(m =>
+        m.tipo === "ENTRADA"
+        ).length;
+
+        const saidas = movimentacoes.filter(m =>
+        m.tipo === "SAIDA"
+        ).length;
+
+        const ctx = document.getElementById("graficoMovimentacoes");
+
+        if (graficoMovimentacoes) {
+        graficoMovimentacoes.destroy();
+        }
+
+        graficoMovimentacoes = new Chart(ctx, {
+
+        type: 'doughnut',
+
+        data: {
+
+        labels: ['Entradas', 'Saídas'],
+
+        datasets: [{
+
+        data: [entradas, saidas],
+
+        borderWidth: 1
+
+        }]
+        },
+
+        options: {
+
+        responsive: true
+
+        }
+        });
+        }
+
+    </script>
+
+}
