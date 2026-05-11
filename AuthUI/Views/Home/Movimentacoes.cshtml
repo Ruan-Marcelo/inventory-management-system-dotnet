@@ -30,7 +30,16 @@
     </div>
 
 </div>
+<div class="mb-4 flex justify-end">
 
+    <button onclick="exportarExcel()"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow">
+
+        Exportar Excel
+
+    </button>
+
+</div>
 <div class="bg-white rounded-xl shadow overflow-hidden">
 
     <table class="w-full">
@@ -55,6 +64,8 @@
 
 @section Scripts {
 
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
     <script>
 
         const API = "https://localhost:7004/api";
@@ -63,70 +74,101 @@
 
         async function carregarMovimentacoes() {
 
-            const response = await apiFetch(`${API}/movimentacoes`);
+        const response = await apiFetch(`${API}/movimentacoes`);
 
-            todasMovimentacoes = await response.json();
+        todasMovimentacoes = await response.json();
 
-            renderizarMovimentacoes(todasMovimentacoes);
+        renderizarMovimentacoes(todasMovimentacoes);
         }
 
         function renderizarMovimentacoes(lista) {
 
-            const tabela = document.getElementById("tabelaMovimentacoes");
+        const tabela = document.getElementById("tabelaMovimentacoes");
 
-            tabela.innerHTML = "";
+        tabela.innerHTML = "";
 
-            lista.forEach(mov => {
+        lista.forEach(mov => {
 
-                const cor =
-                    mov.tipo === "ENTRADA"
-                        ? "text-green-600"
-                        : "text-red-600";
+        const cor =
+        mov.tipo === "ENTRADA"
+        ? "text-green-600"
+        : "text-red-600";
 
-                tabela.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50">
+        tabela.innerHTML += `
+        <tr class="border-b hover:bg-gray-50">
 
-                        <td class="p-4">
-                            ${mov.produto?.nome || 'Produto'}
-                        </td>
+        <td class="p-4">
+        ${mov.produto?.nome || 'Produto'}
+        </td>
 
-                        <td class="p-4 ${cor} font-bold">
-                            ${mov.tipo}
-                        </td>
+        <td class="p-4 ${cor} font-bold">
+        ${mov.tipo}
+        </td>
 
-                        <td class="p-4">
-                            ${mov.quantidade}
-                        </td>
+        <td class="p-4">
+        ${mov.quantidade}
+        </td>
 
-                        <td class="p-4">
-                            ${new Date(mov.dataMovimentacao)
-                                .toLocaleString('pt-BR')}
-                        </td>
+        <td class="p-4">
+        ${new Date(mov.dataMovimentacao)
+        .toLocaleString('pt-BR')}
+        </td>
 
-                    </tr>
-                `;
-            });
+        </tr>
+        `;
+        });
         }
 
         function filtrarMovimentacoes() {
 
-            const texto = document.getElementById("filtro")
-                .value
-                .toLowerCase();
+        const texto = document.getElementById("filtro")
+        .value
+        .toLowerCase();
 
-            const tipo = document.getElementById("tipoFiltro").value;
+        const tipo = document.getElementById("tipoFiltro").value;
 
-            let filtradas = todasMovimentacoes.filter(m =>
-                (m.produto?.nome || '')
-                    .toLowerCase()
-                    .includes(texto)
-            );
+        let filtradas = todasMovimentacoes.filter(m =>
+        (m.produto?.nome || '')
+        .toLowerCase()
+        .includes(texto)
+        );
 
-            if (tipo) {
-                filtradas = filtradas.filter(m => m.tipo === tipo);
-            }
+        if (tipo) {
+        filtradas = filtradas.filter(m => m.tipo === tipo);
+        }
 
-            renderizarMovimentacoes(filtradas);
+        renderizarMovimentacoes(filtradas);
+        }
+
+        function exportarExcel() {
+
+        const dados = todasMovimentacoes.map(mov => ({
+
+        Produto: mov.produto?.nome || 'Produto',
+
+        Tipo: mov.tipo,
+
+        Quantidade: mov.quantidade,
+
+        Data: new Date(mov.dataMovimentacao)
+        .toLocaleString('pt-BR')
+
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dados);
+
+        const workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Movimentacoes"
+        );
+
+        XLSX.writeFile(
+        workbook,
+        "movimentacoes.xlsx"
+        );
         }
 
         carregarMovimentacoes();
