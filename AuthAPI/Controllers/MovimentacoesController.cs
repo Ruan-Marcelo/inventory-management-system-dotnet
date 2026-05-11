@@ -17,7 +17,7 @@ public class MovimentacoesController : ControllerBase
         _context = context;
     }
 
-    // 📜 HISTÓRICO
+    //  HISTÓRICO
     [HttpGet]
     public async Task<IActionResult> Get()
     {
