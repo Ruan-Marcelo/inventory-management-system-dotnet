@@ -9,16 +9,6 @@
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800">
-                Dashboard
-            </h1>
-
-            <p class="text-gray-500">
-                Controle geral da ONG AVA
-            </p>
-        </div>
-
         <div class="bg-blue-600 text-white px-4 py-2 rounded-xl shadow">
             <span id="dataAtual"></span>
         </div>
@@ -199,19 +189,19 @@
         let graficoEstoque = null;
         let graficoMovimentacoes = null;
 
-        // =========================
-        // 📅 DATA
+        // ========================
+        //  DATA
         // =========================
         document.getElementById("dataAtual").innerText =
         new Date().toLocaleDateString("pt-BR");
 
         // =========================
-        // 🚀 INIT
+        //  INIT
         // =========================
         carregarDashboard();
 
         // =========================
-        // 📊 DASHBOARD
+        //  DASHBOARD
         // =========================
         async function carregarDashboard() {
 
@@ -242,13 +232,13 @@
         }
 
         // =========================
-        // 📦 CARDS
+        //  CARDS
         // =========================
         function atualizarCards(produtos, movimentacoes) {
 
         const estoqueBaixo = produtos.filter(p =>
         p.quantidade > 0 &&
-        p.quantidade <= p.quantidadeMinima
+        p.quantidade <= 5
         );
 
         const esgotados = produtos.filter(p =>
@@ -269,7 +259,7 @@
         }
 
         // =========================
-        // 🚨 ALERTAS
+        //  ALERTAS
         // =========================
         function gerarAlertas(produtos) {
 
@@ -278,7 +268,7 @@
         lista.innerHTML = "";
 
         const alertas = produtos.filter(p =>
-        p.quantidade <= p.quantidadeMinima
+        p.quantidade <= 5
         );
 
         if (alertas.length === 0) {
@@ -295,13 +285,11 @@
         alertas.forEach(produto => {
 
         let cor = "yellow";
-
         let mensagem = "Estoque Baixo";
 
         if (produto.quantidade <= 0) {
 
         cor = "red";
-
         mensagem = "Produto Esgotado";
         }
 
@@ -334,7 +322,7 @@
         }
 
         // =========================
-        // 📈 GRÁFICO ESTOQUE
+        //  GRÁFICO ESTOQUE
         // =========================
         function gerarGraficoEstoque(produtos) {
 
@@ -379,7 +367,7 @@
         }
 
         // =========================
-        // 📊 GRÁFICO MOVIMENTAÇÕES
+        //  GRÁFICO MOVIMENTAÇÕES
         // =========================
         function gerarGraficoMovimentacoes(movimentacoes) {
 

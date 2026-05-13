@@ -113,6 +113,11 @@
                 <span class="menu-text">Movimentações</span>
             </a>
 
+            <a href="/Home/Registrar" class="menu-item">
+                <i class="fa fa-users text-lg"></i>
+                <span class="menu-text">Registrar usuário</span>
+            </a>
+
             <a href="#"
                    id="logoutBtn"
                    class="menu-item hover:bg-red-600 mt-6">
@@ -164,7 +169,7 @@
     <script>
 
         // =========================
-        // 🔐 TOKEN
+        //  TOKEN
         // =========================
         const token = localStorage.getItem("token");
 
@@ -173,7 +178,7 @@
         }
 
         // =========================
-        // 🚪 LOGOUT
+        // LOGOUT
         // =========================
         document.getElementById("logoutBtn")
         .addEventListener("click", async (e) => {
@@ -194,7 +199,7 @@
         });
 
         // =========================
-        // 🎯 MENU ATIVO
+        //  MENU ATIVO
         // =========================
         const links = document.querySelectorAll(".menu-item");
 
@@ -207,7 +212,7 @@
         });
 
         // =========================
-        // 📦 SIDEBAR DESKTOP
+        //  SIDEBAR DESKTOP
         // =========================
         let collapsed = false;
 
@@ -247,7 +252,7 @@
         }
 
         // =========================
-        // 📱 SIDEBAR MOBILE
+        //  SIDEBAR MOBILE
         // =========================
         function toggleSidebarMobile() {
 
@@ -271,7 +276,7 @@
         }
 
         // =========================
-        // 🚀 INIT MOBILE
+        //  INIT MOBILE
         // =========================
         if (window.innerWidth < 768) {
 
@@ -280,7 +285,7 @@
         }
 
         // =========================
-        // 🔁 API FETCH
+        //  API FETCH
         // =========================
         async function apiFetch(url, options = {}) {
 
