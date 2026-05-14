@@ -21,5 +21,10 @@ namespace AuthAPI.Models
 
         [JsonIgnore]
         public List<Movimentacao>? Movimentacoes { get; set; }
+
+        // SMTP
+        public bool EmailEstoqueBaixoEnviado { get; set; } = false;
+
+        public bool EmailProdutoZeradoEnviado { get; set; } = false;
     }
 }

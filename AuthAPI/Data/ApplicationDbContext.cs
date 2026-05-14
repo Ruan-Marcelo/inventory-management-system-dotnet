@@ -9,7 +9,16 @@ namespace AuthAPI.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
                : base(options)
+
         {
+        }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Produto>()
+                .Property(p => p.Preco)
+                .HasPrecision(18, 2);
         }
         public DbSet<Produto> Produtos { get; set; }
         public DbSet<Categoria> Categorias { get; set; }

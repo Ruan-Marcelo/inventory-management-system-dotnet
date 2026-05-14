@@ -1,4 +1,5 @@
 using AuthAPI.Data;
+using AuthAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +62,8 @@ builder.Services.AddAuthentication(options =>
         GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
+
+builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 
