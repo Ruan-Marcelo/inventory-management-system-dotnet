@@ -17,7 +17,7 @@ Se você encontrar alguma vulnerabilidade ou falha de segurança no sistema, ent
 
 Envie um e-mail para:
 
-security@seudominio.com
+luzruan@gmail.com
 
 Informe:
 
