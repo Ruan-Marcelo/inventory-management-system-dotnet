@@ -19,7 +19,7 @@ namespace AuthAPI.Services
 
             var mail = new MailMessage
             {
-                From = new MailAddress("zikaluke9@gmail.com"),
+                From = new MailAddress("@gmail.com"),
                 Subject = assunto,
                 Body = mensagem,
                 IsBodyHtml = true
