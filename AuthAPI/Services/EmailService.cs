@@ -19,7 +19,7 @@ namespace AuthAPI.Services
 
             var mail = new MailMessage
             {
-                From = new MailAddress("@gmail.com"),
+                From = new MailAddress("lucasborgws@gmail.com"),
                 Subject = assunto,
                 Body = mensagem,
                 IsBodyHtml = true
@@ -27,7 +27,7 @@ namespace AuthAPI.Services
 
             mail.To.Add(destino);
 
-            await smtp.SendMailAsync(mail);
+            //await smtp.SendMailAsync(mail);
         }
     }
 }
