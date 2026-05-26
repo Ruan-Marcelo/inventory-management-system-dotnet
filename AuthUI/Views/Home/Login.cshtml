@@ -188,10 +188,17 @@
 
             }
             else {
+                let mensagem = 'Email ou senha inválidos.';
+
+                try {
+                    const erro = await response.json();
+                    mensagem = erro.message || erro.mensagem || mensagem;
+                } catch {
+                }
 
                 statusMessage.innerHTML = `
                     <div class="bg-red-100 text-red-700 p-3 rounded-2xl">
-                        Email ou senha inválidos.
+                        ${mensagem}
                     </div>
                 `;
 

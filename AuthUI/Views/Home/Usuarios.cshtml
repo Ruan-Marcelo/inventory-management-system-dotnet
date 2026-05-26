@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Usuários";
+    ViewData["Title"] = "Usuarios";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
@@ -8,10 +8,10 @@
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 lg:items-end">
             <div>
                 <h2 class="text-lg font-extrabold text-slate-900">Controle de acesso</h2>
-                <p class="text-sm text-slate-500">Crie contas fixas para a equipe e logins temporários para veterinários parceiros.</p>
+                <p class="text-sm text-slate-500">Crie contas fixas para a equipe e logins temporarios para veterinarios parceiros.</p>
             </div>
             <button onclick="abrirModal()" class="btn-primary">
-                <i class="fa fa-user-plus mr-2"></i>Novo usuário
+                <i class="fa fa-user-plus mr-2"></i>Novo usuario
             </button>
         </div>
     </section>
@@ -20,11 +20,11 @@
         <table class="w-full text-sm">
             <thead class="bg-slate-50 text-slate-600">
                 <tr>
-                    <th class="p-4 text-left">Usuário</th>
+                    <th class="p-4 text-left">Usuario</th>
                     <th class="p-4 text-left">Perfil</th>
-                    <th class="p-4 text-left">Expiração</th>
+                    <th class="p-4 text-left">Expiracao</th>
                     <th class="p-4 text-left">Status</th>
-                    <th class="p-4 text-left">Ações</th>
+                    <th class="p-4 text-left">Acoes</th>
                 </tr>
             </thead>
             <tbody id="tabelaUsuarios"></tbody>
@@ -36,8 +36,8 @@
     <div class="app-card w-full max-w-xl p-6">
         <div class="flex items-center justify-between mb-5">
             <div>
-                <h2 id="tituloModal" class="text-xl font-extrabold text-slate-900">Novo usuário</h2>
-                <p class="text-sm text-slate-500">Defina o perfil e validade de acesso.</p>
+                <h2 id="tituloModal" class="text-xl font-extrabold text-slate-900">Novo usuario</h2>
+                <p class="text-sm text-slate-500">Defina o perfil e a validade de acesso.</p>
             </div>
             <button onclick="fecharModal()" class="w-10 h-10 rounded-xl bg-slate-100"><i class="fa fa-xmark"></i></button>
         </div>
@@ -45,18 +45,27 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input id="name" class="field" placeholder="Nome completo" />
             <input id="email" type="email" class="field" placeholder="E-mail" />
-            <input id="password" type="password" class="field" placeholder="Senha inicial" />
+            <div class="sm:col-span-2">
+                <input id="password" type="password" class="field" placeholder="Senha inicial" oninput="validarSenhaAoDigitar()" />
+                <div class="mt-2 rounded-xl bg-blue-50 p-3 text-xs text-blue-800">
+                    A senha precisa ter no minimo 6 caracteres, 1 letra maiuscula, 1 letra minuscula e 1 numero.
+                    Exemplo: <strong>Vet123</strong>
+                </div>
+                <div id="senhaErros" class="mt-2 hidden rounded-xl bg-red-50 p-3 text-sm text-red-700"></div>
+            </div>
             <select id="perfil" class="field" onchange="toggleExpiracao()">
-                <option value="Funcionario">Funcionário</option>
-                <option value="VeterinarioParceiro">Veterinário parceiro</option>
+                <option value="Funcionario">Funcionario</option>
+                <option value="VeterinarioParceiro">Veterinario parceiro</option>
                 <option value="Admin">Administrador</option>
             </select>
-            <input id="expiraEm" type="datetime-local" class="field sm:col-span-2 hidden" />
+            <input id="expiraEm" type="datetime-local" class="field hidden" />
         </div>
+
+        <div id="formErro" class="mt-4 hidden rounded-xl bg-red-50 p-3 text-sm text-red-700"></div>
 
         <div class="flex justify-end gap-3 mt-6">
             <button onclick="fecharModal()" class="btn-soft">Cancelar</button>
-            <button onclick="salvarUsuario()" class="btn-primary">Salvar</button>
+            <button id="salvarBtn" onclick="salvarUsuario()" class="btn-primary">Salvar</button>
         </div>
     </div>
 </div>
@@ -78,12 +87,12 @@
         tabela.innerHTML = "";
 
         if (usuarios.length === 0) {
-            tabela.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Nenhum usuário cadastrado.</td></tr>`;
+            tabela.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Nenhum usuario cadastrado.</td></tr>`;
             return;
         }
 
         usuarios.forEach(u => {
-            const expiracao = u.expiraEm ? new Date(u.expiraEm).toLocaleString("pt-BR") : "Sem expiração";
+            const expiracao = u.expiraEm ? new Date(u.expiraEm).toLocaleString("pt-BR") : "Sem expiracao";
             const status = u.ativo ? "Ativo" : "Inativo";
             const statusClass = u.ativo ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700";
 
@@ -107,8 +116,8 @@
 
     function labelPerfil(perfil) {
         if (perfil === "Admin") return "Administrador";
-        if (perfil === "VeterinarioParceiro") return "Veterinário parceiro";
-        return "Funcionário";
+        if (perfil === "VeterinarioParceiro") return "Veterinario parceiro";
+        return "Funcionario";
     }
 
     function toggleExpiracao() {
@@ -116,30 +125,107 @@
         expira.classList.toggle("hidden", document.getElementById("perfil").value !== "VeterinarioParceiro");
     }
 
+    function validarSenha(password) {
+        const erros = [];
+        if (password.length < 6) erros.push("Use pelo menos 6 caracteres.");
+        if (!/[A-Z]/.test(password)) erros.push("Inclua pelo menos 1 letra maiuscula.");
+        if (!/[a-z]/.test(password)) erros.push("Inclua pelo menos 1 letra minuscula.");
+        if (!/[0-9]/.test(password)) erros.push("Inclua pelo menos 1 numero.");
+        return erros;
+    }
+
+    function mostrarErrosSenha(erros) {
+        const box = document.getElementById("senhaErros");
+        if (erros.length === 0) {
+            box.classList.add("hidden");
+            box.innerHTML = "";
+            return;
+        }
+
+        box.classList.remove("hidden");
+        box.innerHTML = erros.map(e => `<div>${e}</div>`).join("");
+    }
+
+    function validarSenhaAoDigitar() {
+        const password = document.getElementById("password").value;
+        mostrarErrosSenha(password ? validarSenha(password) : []);
+    }
+
     async function salvarUsuario() {
+        esconderErroFormulario();
+
         const perfil = document.getElementById("perfil").value;
         const expiraEm = document.getElementById("expiraEm").value;
+        const password = document.getElementById("password").value;
+        const errosSenha = validarSenha(password);
+
+        if (errosSenha.length > 0) {
+            mostrarErrosSenha(errosSenha);
+            return;
+        }
+
         const payload = {
-            name: document.getElementById("name").value,
-            email: document.getElementById("email").value,
-            password: document.getElementById("password").value,
+            name: document.getElementById("name").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            password,
             perfil,
             expiraEm: perfil === "VeterinarioParceiro" && expiraEm ? expiraEm : null
         };
 
-        const response = await apiFetch(`${API}/UserAuth/Register`, {
-            method: "POST",
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            toast(await response.text(), "error");
+        if (!payload.name || !payload.email) {
+            mostrarErroFormulario("Preencha nome e e-mail.");
             return;
         }
 
-        fecharModal();
-        toast("Usuário criado.");
-        carregarUsuarios();
+        const botao = document.getElementById("salvarBtn");
+        botao.disabled = true;
+        botao.innerText = "Salvando...";
+
+        try {
+            const response = await apiFetch(`${API}/UserAuth/Register`, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                mostrarErroFormulario(await lerMensagemErro(response));
+                return;
+            }
+
+            fecharModal();
+            toast("Usuario criado. Ele ja pode entrar com o e-mail e senha cadastrados.");
+            carregarUsuarios();
+        } finally {
+            botao.disabled = false;
+            botao.innerText = "Salvar";
+        }
+    }
+
+    async function lerMensagemErro(response) {
+        const texto = await response.text();
+        try {
+            const json = JSON.parse(texto);
+            if (Array.isArray(json.erros)) return json.erros.join("<br>");
+            if (json.mensagem) return json.mensagem;
+            if (json.message) return json.message;
+        } catch {
+        }
+
+        if (response.status === 409) return "Este e-mail ja esta cadastrado.";
+        if (response.status === 403) return "Seu usuario nao tem permissao para criar contas.";
+        return texto || "Nao foi possivel salvar o usuario.";
+    }
+
+    function mostrarErroFormulario(mensagem) {
+        const box = document.getElementById("formErro");
+        box.innerHTML = mensagem;
+        box.classList.remove("hidden");
+    }
+
+    function esconderErroFormulario() {
+        const box = document.getElementById("formErro");
+        box.innerHTML = "";
+        box.classList.add("hidden");
     }
 
     async function alternarStatus(id, ativo) {
@@ -160,6 +246,8 @@
     function abrirModal() {
         ["name", "email", "password", "expiraEm"].forEach(id => document.getElementById(id).value = "");
         document.getElementById("perfil").value = "Funcionario";
+        esconderErroFormulario();
+        mostrarErrosSenha([]);
         toggleExpiracao();
         document.getElementById("modal").classList.remove("hidden");
         document.getElementById("modal").classList.add("flex");

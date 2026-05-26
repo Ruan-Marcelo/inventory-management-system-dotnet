@@ -1,6 +1,7 @@
 ﻿using AuthAPI.Data;
 using AuthAPI.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -41,16 +42,11 @@ namespace AuthAPI.Controllers
 
 
         [HttpPost("Register")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Register([FromBody] RegisterModel registerModel)
         {
             try
             {
-                var existeUsuario = _userManager.Users.Any();
-                if (existeUsuario && !User.IsInRole("Admin"))
-                {
-                    return Forbid();
-                }
-
                 if (registerModel == null
                     || string.IsNullOrEmpty(registerModel.Name)
                     || string.IsNullOrEmpty(registerModel.Email)
@@ -86,7 +82,11 @@ namespace AuthAPI.Controllers
 
                 if (!result.Succeeded)
                 {
-                    return BadRequest(result.Errors);
+                    return BadRequest(new
+                    {
+                        mensagem = "Senha inválida.",
+                        erros = TraduzirErrosIdentity(result.Errors)
+                    });
                 }
 
                 if (!await _roleManager.RoleExistsAsync(perfil))
@@ -112,6 +112,21 @@ namespace AuthAPI.Controllers
                 return StatusCode(500, "Erro interno no servidor ao criar usuário");
             }
 
+        }
+
+        private static string[] TraduzirErrosIdentity(IEnumerable<IdentityError> errors)
+        {
+            return errors.Select(error => error.Code switch
+            {
+                "PasswordTooShort" => "A senha precisa ter pelo menos 6 caracteres.",
+                "PasswordRequiresDigit" => "A senha precisa ter pelo menos 1 número.",
+                "PasswordRequiresLower" => "A senha precisa ter pelo menos 1 letra minúscula.",
+                "PasswordRequiresUpper" => "A senha precisa ter pelo menos 1 letra maiúscula.",
+                "DuplicateUserName" => "Este e-mail já está cadastrado.",
+                "DuplicateEmail" => "Este e-mail já está cadastrado.",
+                "InvalidEmail" => "Informe um e-mail válido.",
+                _ => error.Description
+            }).ToArray();
         }
 
         [HttpPost("Login")]
