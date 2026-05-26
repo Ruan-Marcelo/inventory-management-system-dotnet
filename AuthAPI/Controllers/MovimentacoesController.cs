@@ -31,8 +31,16 @@ public class MovimentacoesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isVeterinario = User.IsInRole("VeterinarioParceiro");
+
         var movimentacoes = await _context.Movimentacoes
             .Include(x => x.Produto)
+            .ThenInclude(p => p!.Categoria)
+            .Where(m => m.Produto != null)
+            .Where(m => isVeterinario
+                ? m.Produto!.UsuarioId == userId
+                : m.Produto!.UsuarioId == null)
             .OrderByDescending(x => x.DataMovimentacao)
             .ToListAsync();
 
@@ -43,7 +51,14 @@ public class MovimentacoesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Movimentacao mov)
     {
-        var produto = await _context.Produtos.FindAsync(mov.ProdutoId);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isVeterinario = User.IsInRole("VeterinarioParceiro");
+
+        var produto = await _context.Produtos
+            .Where(p => isVeterinario
+                ? p.UsuarioId == userId
+                : p.UsuarioId == null)
+            .FirstOrDefaultAsync(p => p.Id == mov.ProdutoId);
 
         if (produto == null || !produto.Ativo)
             return NotFound("Produto não encontrado");
@@ -54,8 +69,6 @@ public class MovimentacoesController : ControllerBase
         if (mov.Tipo != "ENTRADA" && mov.Tipo != "SAIDA")
             return BadRequest("Tipo de movimentação inválido");
 
-        // pega usuário logado
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         mov.UsuarioId = userId;
 
         // regra de negócio
@@ -72,7 +85,9 @@ public class MovimentacoesController : ControllerBase
         // ENVIO DE EMAILS
         // =========================
 
-        var usuarios = _userManager.Users.ToList();
+        var usuarios = isVeterinario
+            ? await _userManager.Users.Where(u => u.Id == userId).ToListAsync()
+            : await _userManager.Users.Where(u => u.Perfil == "Admin" || u.Perfil == "Funcionario").ToListAsync();
 
         foreach (var usuario in usuarios)
         {

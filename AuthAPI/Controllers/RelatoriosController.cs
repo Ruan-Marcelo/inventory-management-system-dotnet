@@ -2,6 +2,7 @@ using AuthAPI.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using System.Text;
 
 namespace AuthAPI.Controllers
@@ -21,12 +22,20 @@ namespace AuthAPI.Controllers
         [HttpGet("dashboard")]
         public async Task<IActionResult> Dashboard()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isVeterinario = User.IsInRole("VeterinarioParceiro");
+
             var produtos = await _context.Produtos
                 .Include(p => p.Categoria)
+                .Where(p => isVeterinario ? p.UsuarioId == userId : p.UsuarioId == null)
                 .Where(p => p.Ativo)
                 .ToListAsync();
 
-            var movimentacoes = await _context.Movimentacoes.ToListAsync();
+            var movimentacoes = await _context.Movimentacoes
+                .Include(m => m.Produto)
+                .Where(m => m.Produto != null)
+                .Where(m => isVeterinario ? m.Produto!.UsuarioId == userId : m.Produto!.UsuarioId == null)
+                .ToListAsync();
             var hoje = DateTime.Today;
 
             var proximasCirurgias = await _context.AgendamentosCentroCirurgico
@@ -66,9 +75,14 @@ namespace AuthAPI.Controllers
         [HttpGet("movimentacoes")]
         public async Task<IActionResult> Movimentacoes([FromQuery] DateTime? inicio, [FromQuery] DateTime? fim, [FromQuery] string? tipo)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isVeterinario = User.IsInRole("VeterinarioParceiro");
+
             var query = _context.Movimentacoes
                 .Include(m => m.Produto)
                 .ThenInclude(p => p!.Categoria)
+                .Where(m => m.Produto != null)
+                .Where(m => isVeterinario ? m.Produto!.UsuarioId == userId : m.Produto!.UsuarioId == null)
                 .AsQueryable();
 
             if (inicio.HasValue)
@@ -105,8 +119,12 @@ namespace AuthAPI.Controllers
         [HttpGet("estoque")]
         public async Task<IActionResult> Estoque()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isVeterinario = User.IsInRole("VeterinarioParceiro");
+
             var dados = await _context.Produtos
                 .Include(p => p.Categoria)
+                .Where(p => isVeterinario ? p.UsuarioId == userId : p.UsuarioId == null)
                 .Where(p => p.Ativo)
                 .OrderBy(p => p.Nome)
                 .Select(p => new
@@ -128,8 +146,12 @@ namespace AuthAPI.Controllers
         [HttpGet("estoque.csv")]
         public async Task<IActionResult> EstoqueCsv()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isVeterinario = User.IsInRole("VeterinarioParceiro");
+
             var dados = await _context.Produtos
                 .Include(p => p.Categoria)
+                .Where(p => isVeterinario ? p.UsuarioId == userId : p.UsuarioId == null)
                 .Where(p => p.Ativo)
                 .OrderBy(p => p.Nome)
                 .ToListAsync();

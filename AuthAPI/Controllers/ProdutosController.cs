@@ -3,6 +3,7 @@ using AuthAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 [Authorize]
 [Route("api/[controller]")]
@@ -22,6 +23,7 @@ public class ProdutosController : ControllerBase
     {
         var produtos = await _context.Produtos
             .Include(x => x.Categoria)
+            .Where(ProdutoNoEscopo())
             .Where(x => x.Ativo)
             .OrderBy(x => x.Nome)
             .ToListAsync();
@@ -40,6 +42,10 @@ public class ProdutosController : ControllerBase
             return BadRequest(erro);
         }
 
+        produto.UsuarioId = User.IsInRole("VeterinarioParceiro")
+            ? User.FindFirstValue(ClaimTypes.NameIdentifier)
+            : null;
+
         _context.Produtos.Add(produto);
         await _context.SaveChangesAsync();
 
@@ -52,7 +58,9 @@ public class ProdutosController : ControllerBase
         if (id != produto.Id)
             return BadRequest();
 
-        var produtoDb = await _context.Produtos.FindAsync(id);
+        var produtoDb = await _context.Produtos
+            .Where(ProdutoNoEscopo())
+            .FirstOrDefaultAsync(p => p.Id == id);
 
         if (produtoDb == null)
             return NotFound();
@@ -80,7 +88,9 @@ public class ProdutosController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var produto = await _context.Produtos.FindAsync(id);
+        var produto = await _context.Produtos
+            .Where(ProdutoNoEscopo())
+            .FirstOrDefaultAsync(p => p.Id == id);
 
         if (produto == null)
             return NotFound();
@@ -102,6 +112,7 @@ public class ProdutosController : ControllerBase
     {
         var produtos = await _context.Produtos
             .Include(p => p.Categoria)
+            .Where(ProdutoNoEscopo())
             .Where(p => !p.Ativo)
             .ToListAsync();
 
@@ -111,7 +122,9 @@ public class ProdutosController : ControllerBase
     [HttpPut("reativar/{id}")]
     public async Task<IActionResult> Reativar(int id)
     {
-        var produto = await _context.Produtos.FindAsync(id);
+        var produto = await _context.Produtos
+            .Where(ProdutoNoEscopo())
+            .FirstOrDefaultAsync(p => p.Id == id);
 
         if (produto == null)
             return NotFound();
@@ -145,5 +158,16 @@ public class ProdutosController : ControllerBase
         produto.CodigoInterno = produto.CodigoInterno?.Trim();
 
         return null;
+    }
+
+    private System.Linq.Expressions.Expression<Func<Produto, bool>> ProdutoNoEscopo()
+    {
+        if (User.IsInRole("VeterinarioParceiro"))
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return p => p.UsuarioId == userId;
+        }
+
+        return p => p.UsuarioId == null;
     }
 }

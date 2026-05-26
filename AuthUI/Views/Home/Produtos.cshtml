@@ -8,7 +8,7 @@
         <div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4">
             <div>
                 <h2 class="text-lg font-extrabold text-slate-900">Produtos e insumos</h2>
-                <p class="text-sm text-slate-500">Medicamentos, materiais cirúrgicos, limpeza e demais recursos da AVA.</p>
+                <p id="descricaoEscopo" class="text-sm text-slate-500">Medicamentos, materiais cirúrgicos, limpeza e demais recursos da AVA.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
                 <input id="filtroProduto" class="field sm:w-72" placeholder="Buscar por nome, código ou categoria" oninput="filtrarProdutos()" />
@@ -91,6 +91,11 @@
     let editandoId = null;
     let todosProdutos = [];
     let categorias = [];
+
+    document.getElementById("descricaoEscopo").innerText =
+        usuario?.perfil === "VeterinarioParceiro"
+            ? "Este é o seu estoque pessoal. A ONG e outros veterinários não têm acesso a estes produtos."
+            : "Este é o estoque institucional da AVA. Veterinários parceiros possuem estoques pessoais separados.";
 
     carregarTudo();
 

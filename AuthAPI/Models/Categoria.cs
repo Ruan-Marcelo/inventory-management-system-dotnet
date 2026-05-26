@@ -1,4 +1,6 @@
-﻿namespace AuthAPI.Models
+using System.Text.Json.Serialization;
+
+namespace AuthAPI.Models
 {
     public class Categoria
     {
@@ -10,6 +12,7 @@
 
         public bool Ativo { get; set; } = true;
 
+        [JsonIgnore]
         public List<Produto>? Produtos { get; set; }
     }
 }

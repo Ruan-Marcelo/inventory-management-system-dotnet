@@ -21,6 +21,8 @@ namespace AuthAPI.Models
 
         public bool Ativo { get; set; } = true;
 
+        public string? UsuarioId { get; set; }
+
         public int? CategoriaId { get; set; }
 
         public Categoria? Categoria { get; set; }
