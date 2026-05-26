@@ -74,6 +74,10 @@
 <script>
     let usuarios = [];
 
+    if (usuario?.perfil !== "Admin") {
+        window.location.href = "/Home/Index";
+    }
+
     carregarUsuarios();
 
     async function carregarUsuarios() {

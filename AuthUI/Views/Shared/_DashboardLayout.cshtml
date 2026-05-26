@@ -85,9 +85,9 @@
                 <a href="/Home/Produtos" class="menu-item"><i class="fa fa-boxes-stacked w-5"></i><span>Estoque</span></a>
                 <a href="/Home/Categorias" class="menu-item"><i class="fa fa-tags w-5"></i><span>Categorias</span></a>
                 <a href="/Home/Movimentacoes" class="menu-item"><i class="fa fa-right-left w-5"></i><span>Movimentações</span></a>
-                <a href="/Home/CentroCirurgico" class="menu-item"><i class="fa fa-calendar-check w-5"></i><span>Centro Cirúrgico</span></a>
+                <a href="/Home/CentroCirurgico" class="menu-item"><i class="fa fa-briefcase-medical w-5"></i><span>Estoque cirúrgico</span></a>
                 <a href="/Home/Relatorios" class="menu-item"><i class="fa fa-file-lines w-5"></i><span>Relatórios</span></a>
-                <a href="/Home/Usuarios" class="menu-item"><i class="fa fa-user-shield w-5"></i><span>Usuários</span></a>
+                <a href="/Home/Usuarios" data-admin-only="true" class="menu-item"><i class="fa fa-user-shield w-5"></i><span>Usuários</span></a>
             </nav>
 
             <div class="p-4 border-t border-white/10">
@@ -143,6 +143,10 @@
             document.getElementById("usuarioPerfil").innerText = usuario.perfil || "Perfil";
         }
 
+        if (usuario?.perfil !== "Admin") {
+            document.querySelectorAll("[data-admin-only='true']").forEach(item => item.remove());
+        }
+
         document.querySelectorAll(".menu-item").forEach(link => {
             const url = new URL(link.href);
             if (url.pathname === window.location.pathname) link.classList.add("active");
@@ -155,29 +159,54 @@
 
         function toast(message, type = "success") {
             const el = document.getElementById("toast");
-            el.innerText = message;
+            el.innerHTML = message;
             el.className = "fixed bottom-4 right-4 z-[80] max-w-sm rounded-2xl px-4 py-3 shadow-2xl text-white " + (type === "error" ? "bg-red-600" : "bg-slate-900");
             el.classList.remove("hidden");
-            setTimeout(() => el.classList.add("hidden"), 3200);
+            setTimeout(() => el.classList.add("hidden"), type === "error" ? 5200 : 3200);
+        }
+
+        async function readError(response) {
+            const fallback = response.status >= 500
+                ? "Erro interno no servidor. Verifique se a API está rodando corretamente."
+                : "Não foi possível concluir a operação.";
+
+            const text = await response.text();
+            if (!text) return fallback;
+
+            try {
+                const json = JSON.parse(text);
+                if (Array.isArray(json.erros)) return json.erros.join("<br>");
+                if (json.mensagem) return json.mensagem;
+                if (json.message) return json.message;
+                if (json.title) return json.title;
+            } catch {
+            }
+
+            return text.length > 350 ? fallback : text;
         }
 
         async function apiFetch(url, options = {}) {
-            const response = await fetch(url, {
-                ...options,
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + localStorage.getItem("token"),
-                    ...options.headers
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + localStorage.getItem("token"),
+                        ...options.headers
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("usuario");
+                    window.location.href = "/Home/Login";
                 }
-            });
 
-            if (response.status === 401 || response.status === 403) {
-                localStorage.removeItem("token");
-                localStorage.removeItem("usuario");
-                window.location.href = "/Home/Login";
+                return response;
+            } catch {
+                toast("Não foi possível conectar com a API. Verifique se AuthAPI está rodando.", "error");
+                return new Response("", { status: 0 });
             }
-
-            return response;
         }
 
         document.getElementById("logoutBtn").addEventListener("click", async () => {

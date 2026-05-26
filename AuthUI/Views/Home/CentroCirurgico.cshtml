@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Centro Cirúrgico";
+    ViewData["Title"] = "Estoque cirúrgico";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
@@ -7,171 +7,304 @@
     <section class="app-card p-5">
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             <div>
-                <h2 class="text-lg font-extrabold text-slate-900">Agenda da sala cirúrgica</h2>
-                <p class="text-sm text-slate-500">Controle de uso da sala para evitar conflito de horários.</p>
+                <h2 class="text-lg font-extrabold text-slate-900">Materiais cirúrgicos</h2>
+                <p class="text-sm text-slate-500">Controle separado dos itens usados em procedimentos e sala cirúrgica.</p>
             </div>
-            <div class="flex flex-col sm:flex-row gap-3">
-                <input id="filtroData" type="date" class="field" onchange="carregarAgendamentos()" />
-                <button onclick="abrirModal()" class="btn-primary"><i class="fa fa-plus mr-2"></i>Novo agendamento</button>
-            </div>
+            <button onclick="abrirModal()" class="btn-primary">
+                <i class="fa fa-plus mr-2"></i>Novo item cirúrgico
+            </button>
         </div>
     </section>
 
-    <section id="listaAgendamentos" class="grid grid-cols-1 xl:grid-cols-2 gap-4"></section>
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Itens cirúrgicos</p>
+            <div id="totalItens" class="text-3xl font-extrabold text-slate-900 mt-1">0</div>
+        </div>
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Abaixo do mínimo</p>
+            <div id="baixoMinimo" class="text-3xl font-extrabold text-amber-600 mt-1">0</div>
+        </div>
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Esgotados</p>
+            <div id="esgotados" class="text-3xl font-extrabold text-red-600 mt-1">0</div>
+        </div>
+    </section>
+
+    <section id="listaItens" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4"></section>
 </div>
 
 <div id="modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-slate-950/60 p-4">
     <div class="app-card w-full max-w-2xl p-6">
         <div class="flex justify-between items-start gap-4 mb-5">
             <div>
-                <h2 id="tituloModal" class="text-xl font-extrabold text-slate-900">Novo agendamento</h2>
-                <p class="text-sm text-slate-500">Informe paciente, procedimento e horário.</p>
+                <h2 id="tituloModal" class="text-xl font-extrabold text-slate-900">Novo item cirúrgico</h2>
+                <p class="text-sm text-slate-500">O item será salvo na categoria de materiais cirúrgicos.</p>
             </div>
             <button onclick="fecharModal()" class="w-10 h-10 rounded-xl bg-slate-100"><i class="fa fa-xmark"></i></button>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input id="paciente" class="field" placeholder="Paciente / animal" />
-            <input id="veterinarioResponsavel" class="field" placeholder="Veterinário responsável" />
-            <input id="procedimento" class="field sm:col-span-2" placeholder="Procedimento" />
-            <input id="inicio" type="datetime-local" class="field" />
-            <input id="fim" type="datetime-local" class="field" />
-            <select id="status" class="field">
-                <option value="Agendado">Agendado</option>
-                <option value="Realizado">Realizado</option>
-                <option value="Cancelado">Cancelado</option>
-            </select>
-            <input id="observacao" class="field" placeholder="Observação" />
+            <input id="nome" class="field" placeholder="Nome do material" />
+            <input id="codigoInterno" class="field" placeholder="Código interno" />
+            <input id="unidadeMedida" class="field" placeholder="Unidade: un, cx, pct..." value="un" />
+            <input id="preco" type="number" min="0" step="0.01" class="field" placeholder="Preço unitário" />
+            <input id="quantidade" type="number" min="0" class="field" placeholder="Quantidade atual" />
+            <input id="estoqueMinimo" type="number" min="0" class="field" placeholder="Estoque mínimo" />
+            <input id="descricao" class="field sm:col-span-2" placeholder="Descrição/observação" />
         </div>
 
         <div class="flex justify-end gap-3 mt-6">
             <button onclick="fecharModal()" class="btn-soft">Cancelar</button>
-            <button onclick="salvarAgendamento()" class="btn-primary">Salvar</button>
+            <button onclick="salvarItem()" class="btn-primary">Salvar item</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalMovimentacao" class="fixed inset-0 z-[75] hidden items-center justify-center bg-slate-950/60 p-4">
+    <div class="app-card w-full max-w-md p-6">
+        <div class="flex justify-between items-start gap-4 mb-5">
+            <div>
+                <h2 id="movTitulo" class="text-xl font-extrabold text-slate-900">Movimentar item</h2>
+                <p id="movProduto" class="text-sm text-slate-500"></p>
+            </div>
+            <button onclick="fecharMovimentacao()" class="w-10 h-10 rounded-xl bg-slate-100"><i class="fa fa-xmark"></i></button>
+        </div>
+
+        <input id="movQuantidade" type="number" min="1" class="field mb-3" placeholder="Quantidade" />
+        <textarea id="movObservacao" class="field min-h-24" placeholder="Observação opcional"></textarea>
+        <div id="movErro" class="hidden mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-700"></div>
+
+        <div class="flex justify-end gap-3 mt-6">
+            <button onclick="fecharMovimentacao()" class="btn-soft">Cancelar</button>
+            <button onclick="salvarMovimentacao()" class="btn-primary">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalConfirmacao" class="fixed inset-0 z-[76] hidden items-center justify-center bg-slate-950/60 p-4">
+    <div class="app-card w-full max-w-md p-6">
+        <h2 class="text-xl font-extrabold text-slate-900">Inativar item</h2>
+        <p id="confirmacaoTexto" class="text-sm text-slate-600 mt-2"></p>
+        <div class="flex justify-end gap-3 mt-6">
+            <button onclick="fecharConfirmacao()" class="btn-soft">Cancelar</button>
+            <button onclick="confirmarInativacao()" class="rounded-xl bg-red-600 hover:bg-red-700 text-white px-4 py-3 font-bold">Inativar</button>
         </div>
     </div>
 </div>
 
 @section Scripts {
 <script>
-    let agendamentos = [];
+    let categoriaCirurgica = null;
+    let itens = [];
     let editandoId = null;
+    let movimentacaoAtual = null;
+    let itemParaInativar = null;
 
-    document.getElementById("filtroData").valueAsDate = new Date();
-    carregarAgendamentos();
+    carregarTela();
 
-    async function carregarAgendamentos() {
-        const data = document.getElementById("filtroData").value;
-        let url = `${API}/centrocirurgico`;
-        if (data) {
-            url += `?inicio=${data}T00:00:00&fim=${data}T23:59:59`;
+    async function carregarTela() {
+        await carregarCategoriaCirurgica();
+        await carregarItens();
+    }
+
+    async function carregarCategoriaCirurgica() {
+        const response = await apiFetch(`${API}/categorias`);
+        if (!response.ok) {
+            toast(await readError(response), "error");
+            return;
         }
 
-        const response = await apiFetch(url);
-        agendamentos = response.ok ? await response.json() : [];
+        const categorias = await response.json();
+        categoriaCirurgica = categorias.find(c => normalizar(c.nome).includes("cirurg"));
+
+        if (!categoriaCirurgica) {
+            toast("Categoria de materiais cirúrgicos não encontrada. Cadastre em Categorias.", "error");
+        }
+    }
+
+    async function carregarItens() {
+        const response = await apiFetch(`${API}/produtos`);
+        if (!response.ok) {
+            toast(await readError(response), "error");
+            return;
+        }
+
+        const produtos = await response.json();
+        itens = produtos.filter(p => normalizar(p.categoria?.nome || "").includes("cirurg"));
         renderizar();
     }
 
     function renderizar() {
-        const lista = document.getElementById("listaAgendamentos");
+        document.getElementById("totalItens").innerText = itens.length;
+        document.getElementById("baixoMinimo").innerText = itens.filter(i => i.quantidade > 0 && i.quantidade <= i.estoqueMinimo).length;
+        document.getElementById("esgotados").innerText = itens.filter(i => i.quantidade <= 0).length;
+
+        const lista = document.getElementById("listaItens");
         lista.innerHTML = "";
 
-        if (agendamentos.length === 0) {
-            lista.innerHTML = `<div class="app-card p-8 text-center text-slate-500 xl:col-span-2">Nenhum agendamento encontrado para o período.</div>`;
+        if (itens.length === 0) {
+            lista.innerHTML = `<div class="app-card p-8 text-center text-slate-500 lg:col-span-2 xl:col-span-3">Nenhum material cirúrgico cadastrado.</div>`;
             return;
         }
 
-        agendamentos.forEach(a => {
-            const status = statusInfo(a.status);
+        itens.forEach(item => {
+            const status = statusItem(item);
+            const itemJson = JSON.stringify(item).replaceAll("'", "&#39;");
+
             lista.innerHTML += `
                 <article class="app-card p-5">
-                    <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-start justify-between gap-3">
                         <div>
-                            <div class="text-xs font-bold text-slate-500">${formatarData(a.inicio)} até ${formatarHora(a.fim)}</div>
-                            <h3 class="text-lg font-extrabold text-slate-900 mt-1">${a.paciente}</h3>
-                            <p class="text-sm text-slate-600">${a.procedimento}</p>
+                            <h3 class="text-lg font-extrabold text-slate-900">${item.nome}</h3>
+                            <p class="text-xs text-slate-500">${item.codigoInterno || "Sem código"} - ${item.descricao || "Sem descrição"}</p>
                         </div>
-                        <span class="px-3 py-1 rounded-full text-xs font-bold ${status.classe}">${a.status}</span>
+                        <span class="px-2 py-1 rounded-full text-xs font-bold ${status.classe}">${status.texto}</span>
                     </div>
-                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div class="grid grid-cols-2 gap-3 mt-4 text-sm">
                         <div class="rounded-xl bg-slate-50 p-3">
-                            <div class="text-slate-500">Veterinário</div>
-                            <div class="font-bold">${a.veterinarioResponsavel}</div>
+                            <div class="text-slate-500">Quantidade</div>
+                            <div class="font-extrabold">${item.quantidade} ${item.unidadeMedida || "un"}</div>
                         </div>
                         <div class="rounded-xl bg-slate-50 p-3">
-                            <div class="text-slate-500">Observação</div>
-                            <div class="font-bold">${a.observacao || "Sem observação"}</div>
+                            <div class="text-slate-500">Mínimo</div>
+                            <div class="font-extrabold">${item.estoqueMinimo}</div>
                         </div>
                     </div>
-                    <div class="flex gap-2 flex-wrap mt-4">
-                        <button onclick='editar(${JSON.stringify(a)})' class="rounded-lg bg-amber-500 text-white px-3 py-2 font-bold">Editar</button>
-                        <button onclick="remover(${a.id})" class="rounded-lg bg-slate-800 text-white px-3 py-2 font-bold">Remover</button>
+                    <div class="grid grid-cols-2 gap-2 mt-4">
+                        <button onclick="abrirMovimentacao(${item.id}, 'ENTRADA')" class="rounded-lg bg-emerald-600 text-white px-3 py-2 font-bold text-sm">Entrada</button>
+                        <button onclick="abrirMovimentacao(${item.id}, 'SAIDA')" class="rounded-lg bg-red-600 text-white px-3 py-2 font-bold text-sm">Saída</button>
+                        <button onclick='editarItem(${itemJson})' class="rounded-lg bg-amber-500 text-white px-3 py-2 font-bold text-sm">Editar</button>
+                        <button onclick='abrirConfirmacao(${itemJson})' class="rounded-lg bg-slate-800 text-white px-3 py-2 font-bold text-sm">Inativar</button>
                     </div>
                 </article>`;
         });
     }
 
-    function statusInfo(status) {
-        if (status === "Realizado") return { classe: "bg-emerald-100 text-emerald-700" };
-        if (status === "Cancelado") return { classe: "bg-red-100 text-red-700" };
-        return { classe: "bg-blue-100 text-blue-700" };
+    function statusItem(item) {
+        if (item.quantidade <= 0) return { texto: "Esgotado", classe: "bg-red-100 text-red-700" };
+        if (item.quantidade <= item.estoqueMinimo) return { texto: "Baixo", classe: "bg-amber-100 text-amber-700" };
+        return { texto: "OK", classe: "bg-emerald-100 text-emerald-700" };
     }
 
-    async function salvarAgendamento() {
-        const payload = {
-            paciente: document.getElementById("paciente").value,
-            veterinarioResponsavel: document.getElementById("veterinarioResponsavel").value,
-            procedimento: document.getElementById("procedimento").value,
-            inicio: document.getElementById("inicio").value,
-            fim: document.getElementById("fim").value,
-            status: document.getElementById("status").value,
-            observacao: document.getElementById("observacao").value
+    async function salvarItem() {
+        if (!categoriaCirurgica) {
+            toast("Categoria cirúrgica não encontrada.", "error");
+            return;
+        }
+
+        const item = {
+            nome: document.getElementById("nome").value,
+            descricao: document.getElementById("descricao").value,
+            codigoInterno: document.getElementById("codigoInterno").value,
+            categoriaId: categoriaCirurgica.id,
+            unidadeMedida: document.getElementById("unidadeMedida").value || "un",
+            preco: parseFloat(document.getElementById("preco").value || "0"),
+            quantidade: parseInt(document.getElementById("quantidade").value || "0"),
+            estoqueMinimo: parseInt(document.getElementById("estoqueMinimo").value || "0")
         };
 
         const response = editandoId
-            ? await apiFetch(`${API}/centrocirurgico/${editandoId}`, { method: "PUT", body: JSON.stringify({ id: editandoId, ...payload }) })
-            : await apiFetch(`${API}/centrocirurgico`, { method: "POST", body: JSON.stringify(payload) });
+            ? await apiFetch(`${API}/produtos/${editandoId}`, { method: "PUT", body: JSON.stringify({ id: editandoId, ...item }) })
+            : await apiFetch(`${API}/produtos`, { method: "POST", body: JSON.stringify(item) });
 
         if (!response.ok) {
-            toast(await response.text(), "error");
+            toast(await readError(response), "error");
             return;
         }
 
         fecharModal();
-        toast("Agendamento salvo.");
-        carregarAgendamentos();
+        toast("Item cirúrgico salvo.");
+        carregarItens();
     }
 
-    function editar(a) {
-        editandoId = a.id;
-        document.getElementById("tituloModal").innerText = "Editar agendamento";
-        document.getElementById("paciente").value = a.paciente || "";
-        document.getElementById("veterinarioResponsavel").value = a.veterinarioResponsavel || "";
-        document.getElementById("procedimento").value = a.procedimento || "";
-        document.getElementById("inicio").value = toInputDate(a.inicio);
-        document.getElementById("fim").value = toInputDate(a.fim);
-        document.getElementById("status").value = a.status || "Agendado";
-        document.getElementById("observacao").value = a.observacao || "";
+    function editarItem(item) {
+        editandoId = item.id;
+        document.getElementById("tituloModal").innerText = "Editar item cirúrgico";
+        document.getElementById("nome").value = item.nome || "";
+        document.getElementById("descricao").value = item.descricao || "";
+        document.getElementById("codigoInterno").value = item.codigoInterno || "";
+        document.getElementById("unidadeMedida").value = item.unidadeMedida || "un";
+        document.getElementById("preco").value = item.preco || 0;
+        document.getElementById("quantidade").value = item.quantidade || 0;
+        document.getElementById("estoqueMinimo").value = item.estoqueMinimo || 0;
         abrirModal(false);
     }
 
-    async function remover(id) {
-        if (!confirm("Deseja remover este agendamento?")) return;
-        const response = await apiFetch(`${API}/centrocirurgico/${id}`, { method: "DELETE" });
+    function abrirConfirmacao(item) {
+        itemParaInativar = item;
+        document.getElementById("confirmacaoTexto").innerText = `Deseja inativar "${item.nome}"? Ele sairá da listagem principal.`;
+        document.getElementById("modalConfirmacao").classList.remove("hidden");
+        document.getElementById("modalConfirmacao").classList.add("flex");
+    }
+
+    function fecharConfirmacao() {
+        document.getElementById("modalConfirmacao").classList.add("hidden");
+        document.getElementById("modalConfirmacao").classList.remove("flex");
+    }
+
+    async function confirmarInativacao() {
+        if (!itemParaInativar) return;
+        const response = await apiFetch(`${API}/produtos/${itemParaInativar.id}`, { method: "DELETE" });
         if (!response.ok) {
-            toast(await response.text(), "error");
+            toast(await readError(response), "error");
             return;
         }
-        toast("Agendamento removido.");
-        carregarAgendamentos();
+        fecharConfirmacao();
+        toast("Item inativado.");
+        carregarItens();
+    }
+
+    function abrirMovimentacao(produtoId, tipo) {
+        const item = itens.find(p => p.id === produtoId);
+        movimentacaoAtual = { produtoId, tipo };
+        document.getElementById("movTitulo").innerText = tipo === "ENTRADA" ? "Registrar entrada" : "Registrar saída";
+        document.getElementById("movProduto").innerText = item ? `${item.nome} - estoque atual: ${item.quantidade} ${item.unidadeMedida || "un"}` : "";
+        document.getElementById("movQuantidade").value = "";
+        document.getElementById("movObservacao").value = "";
+        document.getElementById("movErro").classList.add("hidden");
+        document.getElementById("modalMovimentacao").classList.remove("hidden");
+        document.getElementById("modalMovimentacao").classList.add("flex");
+    }
+
+    function fecharMovimentacao() {
+        document.getElementById("modalMovimentacao").classList.add("hidden");
+        document.getElementById("modalMovimentacao").classList.remove("flex");
+    }
+
+    async function salvarMovimentacao() {
+        const quantidade = parseInt(document.getElementById("movQuantidade").value || "0");
+        const erro = document.getElementById("movErro");
+
+        if (!movimentacaoAtual || quantidade <= 0) {
+            erro.innerText = "Informe uma quantidade maior que zero.";
+            erro.classList.remove("hidden");
+            return;
+        }
+
+        const response = await apiFetch(`${API}/movimentacoes`, {
+            method: "POST",
+            body: JSON.stringify({
+                produtoId: movimentacaoAtual.produtoId,
+                tipo: movimentacaoAtual.tipo,
+                quantidade,
+                observacao: document.getElementById("movObservacao").value
+            })
+        });
+
+        if (!response.ok) {
+            erro.innerHTML = await readError(response);
+            erro.classList.remove("hidden");
+            return;
+        }
+
+        fecharMovimentacao();
+        toast("Movimentação registrada.");
+        carregarItens();
     }
 
     function abrirModal(limpar = true) {
-        if (limpar) {
-            editandoId = null;
-            document.getElementById("tituloModal").innerText = "Novo agendamento";
-            ["paciente", "veterinarioResponsavel", "procedimento", "inicio", "fim", "observacao"].forEach(id => document.getElementById(id).value = "");
-            document.getElementById("status").value = "Agendado";
-        }
+        if (limpar) limparFormulario();
         document.getElementById("modal").classList.remove("hidden");
         document.getElementById("modal").classList.add("flex");
     }
@@ -181,18 +314,15 @@
         document.getElementById("modal").classList.remove("flex");
     }
 
-    function formatarData(data) {
-        return new Date(data).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    function limparFormulario() {
+        editandoId = null;
+        document.getElementById("tituloModal").innerText = "Novo item cirúrgico";
+        ["nome", "descricao", "codigoInterno", "preco", "quantidade", "estoqueMinimo"].forEach(id => document.getElementById(id).value = "");
+        document.getElementById("unidadeMedida").value = "un";
     }
 
-    function formatarHora(data) {
-        return new Date(data).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-    }
-
-    function toInputDate(data) {
-        const d = new Date(data);
-        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-        return d.toISOString().slice(0, 16);
+    function normalizar(valor) {
+        return valor.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     }
 </script>
 }

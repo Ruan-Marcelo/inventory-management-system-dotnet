@@ -8,10 +8,10 @@
         <div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4">
             <div>
                 <h2 class="text-lg font-extrabold text-slate-900">Produtos e insumos</h2>
-                <p id="descricaoEscopo" class="text-sm text-slate-500">Medicamentos, materiais cirúrgicos, limpeza e demais recursos da AVA.</p>
+                <p id="descricaoEscopo" class="text-sm text-slate-500"></p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
-                <input id="filtroProduto" class="field sm:w-72" placeholder="Buscar por nome, código ou categoria" oninput="filtrarProdutos()" />
+                <input id="filtroProduto" class="field sm:w-72" placeholder="Buscar por nome, codigo ou categoria" oninput="filtrarProdutos()" />
                 <select id="filtroEstoque" class="field sm:w-48" onchange="filtrarProdutos()">
                     <option value="">Todos os status</option>
                     <option value="baixo">Estoque baixo</option>
@@ -31,7 +31,7 @@
             <div id="cardTotal" class="text-3xl font-extrabold text-slate-900 mt-1">0</div>
         </div>
         <div class="app-card p-5">
-            <p class="text-sm text-slate-500">Abaixo do mínimo</p>
+            <p class="text-sm text-slate-500">Abaixo do minimo</p>
             <div id="cardBaixo" class="text-3xl font-extrabold text-amber-600 mt-1">0</div>
         </div>
         <div class="app-card p-5">
@@ -40,15 +40,17 @@
         </div>
     </section>
 
-    <section class="app-card table-wrap">
+    <section id="cardsProdutos" class="grid grid-cols-1 gap-4 md:hidden"></section>
+
+    <section class="app-card table-wrap hidden md:block">
         <table class="w-full text-sm">
             <thead class="bg-slate-50 text-slate-600">
                 <tr>
                     <th class="p-4 text-left">Produto</th>
                     <th class="p-4 text-left">Categoria</th>
                     <th class="p-4 text-left">Estoque</th>
-                    <th class="p-4 text-left">Preço</th>
-                    <th class="p-4 text-left">Ações</th>
+                    <th class="p-4 text-left">Preco</th>
+                    <th class="p-4 text-left">Acoes</th>
                 </tr>
             </thead>
             <tbody id="tabelaProdutos"></tbody>
@@ -70,13 +72,13 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input id="nome" class="field" placeholder="Nome do produto" />
-            <input id="codigoInterno" class="field" placeholder="Código interno" />
+            <input id="codigoInterno" class="field" placeholder="Codigo interno" />
             <select id="categoriaId" class="field"></select>
             <input id="unidadeMedida" class="field" placeholder="Unidade: un, cx, ml..." value="un" />
-            <input id="preco" type="number" min="0" step="0.01" class="field" placeholder="Preço unitário" />
+            <input id="preco" type="number" min="0" step="0.01" class="field" placeholder="Preco unitario" />
             <input id="quantidade" type="number" min="0" class="field" placeholder="Quantidade atual" />
-            <input id="estoqueMinimo" type="number" min="0" class="field" placeholder="Estoque mínimo" />
-            <input id="descricao" class="field" placeholder="Descrição/observação" />
+            <input id="estoqueMinimo" type="number" min="0" class="field" placeholder="Estoque minimo" />
+            <input id="descricao" class="field" placeholder="Descricao/observacao" />
         </div>
 
         <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
@@ -86,16 +88,52 @@
     </div>
 </div>
 
+<div id="modalMovimentacao" class="fixed inset-0 z-[75] hidden items-center justify-center bg-slate-950/60 p-4">
+    <div class="app-card w-full max-w-md p-5 sm:p-6">
+        <div class="flex items-start justify-between gap-4 mb-5">
+            <div>
+                <h2 id="movTitulo" class="text-xl font-extrabold text-slate-900">Movimentar estoque</h2>
+                <p id="movProduto" class="text-sm text-slate-500"></p>
+            </div>
+            <button onclick="fecharMovimentacao()" class="w-10 h-10 rounded-xl bg-slate-100">
+                <i class="fa fa-xmark"></i>
+            </button>
+        </div>
+
+        <input id="movQuantidade" type="number" min="1" class="field mb-3" placeholder="Quantidade" />
+        <textarea id="movObservacao" class="field min-h-24" placeholder="Observacao opcional"></textarea>
+        <div id="movErro" class="hidden mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-700"></div>
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+            <button onclick="fecharMovimentacao()" class="btn-soft">Cancelar</button>
+            <button onclick="salvarMovimentacao()" class="btn-primary">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalConfirmacao" class="fixed inset-0 z-[76] hidden items-center justify-center bg-slate-950/60 p-4">
+    <div class="app-card w-full max-w-md p-5 sm:p-6">
+        <h2 class="text-xl font-extrabold text-slate-900">Inativar produto</h2>
+        <p id="confirmacaoTexto" class="text-sm text-slate-600 mt-2"></p>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+            <button onclick="fecharConfirmacao()" class="btn-soft">Cancelar</button>
+            <button onclick="confirmarInativacao()" class="rounded-xl bg-red-600 hover:bg-red-700 text-white px-4 py-3 font-bold">Inativar</button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
 <script>
     let editandoId = null;
     let todosProdutos = [];
     let categorias = [];
+    let movimentacaoAtual = null;
+    let produtoParaInativar = null;
 
     document.getElementById("descricaoEscopo").innerText =
         usuario?.perfil === "VeterinarioParceiro"
-            ? "Este é o seu estoque pessoal. A ONG e outros veterinários não têm acesso a estes produtos."
-            : "Este é o estoque institucional da AVA. Veterinários parceiros possuem estoques pessoais separados.";
+            ? "Este e o seu estoque pessoal. A ONG e outros veterinarios nao tem acesso a estes produtos."
+            : "Este e o estoque institucional da AVA. Veterinarios parceiros possuem estoques pessoais separados.";
 
     carregarTudo();
 
@@ -106,7 +144,12 @@
 
     async function carregarCategorias() {
         const response = await apiFetch(`${API}/categorias`);
-        categorias = response.ok ? await response.json() : [];
+        if (!response.ok) {
+            toast(await readError(response), "error");
+            return;
+        }
+
+        categorias = await response.json();
         const select = document.getElementById("categoriaId");
         select.innerHTML = `<option value="">Sem categoria</option>`;
         categorias.forEach(c => select.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
@@ -114,7 +157,12 @@
 
     async function carregarProdutos() {
         const response = await apiFetch(`${API}/produtos`);
-        todosProdutos = response.ok ? await response.json() : [];
+        if (!response.ok) {
+            toast(await readError(response), "error");
+            return;
+        }
+
+        todosProdutos = await response.json();
         atualizarCards();
         renderizarProdutos(todosProdutos);
     }
@@ -133,20 +181,25 @@
 
     function renderizarProdutos(produtos) {
         const tabela = document.getElementById("tabelaProdutos");
+        const cards = document.getElementById("cardsProdutos");
         tabela.innerHTML = "";
+        cards.innerHTML = "";
 
         if (produtos.length === 0) {
             tabela.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Nenhum produto encontrado.</td></tr>`;
+            cards.innerHTML = `<div class="app-card p-6 text-center text-slate-500">Nenhum produto encontrado.</div>`;
             return;
         }
 
         produtos.forEach(produto => {
             const status = statusProduto(produto);
+            const produtoJson = JSON.stringify(produto).replaceAll("'", "&#39;");
+
             tabela.innerHTML += `
                 <tr class="border-t border-slate-100 hover:bg-slate-50">
                     <td class="p-4">
                         <div class="font-extrabold text-slate-900">${produto.nome}</div>
-                        <div class="text-xs text-slate-500">${produto.codigoInterno || "Sem código"} · ${produto.descricao || "Sem descrição"}</div>
+                        <div class="text-xs text-slate-500">${produto.codigoInterno || "Sem codigo"} - ${produto.descricao || "Sem descricao"}</div>
                     </td>
                     <td class="p-4">${produto.categoria?.nome || "Sem categoria"}</td>
                     <td class="p-4">
@@ -154,19 +207,48 @@
                             <span class="font-extrabold">${produto.quantidade} ${produto.unidadeMedida || "un"}</span>
                             <span class="px-2 py-1 rounded-full text-xs font-bold ${status.classe}">${status.texto}</span>
                         </div>
-                        <div class="text-xs text-slate-500 mt-1">Mínimo: ${produto.estoqueMinimo}</div>
+                        <div class="text-xs text-slate-500 mt-1">Minimo: ${produto.estoqueMinimo}</div>
                     </td>
                     <td class="p-4">R$ ${Number(produto.preco).toFixed(2)}</td>
                     <td class="p-4">
-                        <div class="flex flex-wrap gap-2">
-                            <button onclick="movimentar(${produto.id}, 'ENTRADA')" class="rounded-lg bg-emerald-600 text-white px-3 py-2 font-bold">Entrada</button>
-                            <button onclick="movimentar(${produto.id}, 'SAIDA')" class="rounded-lg bg-red-600 text-white px-3 py-2 font-bold">Saída</button>
-                            <button onclick='editarProduto(${JSON.stringify(produto)})' class="rounded-lg bg-amber-500 text-white px-3 py-2 font-bold">Editar</button>
-                            <button onclick="excluirProduto(${produto.id})" class="rounded-lg bg-slate-800 text-white px-3 py-2 font-bold">Inativar</button>
+                        <div class="grid grid-cols-2 xl:grid-cols-4 gap-2 min-w-[260px]">
+                            ${botoesProduto(produto, produtoJson)}
                         </div>
                     </td>
                 </tr>`;
+
+            cards.innerHTML += `
+                <article class="app-card p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <h3 class="font-extrabold text-slate-900">${produto.nome}</h3>
+                            <p class="text-xs text-slate-500">${produto.categoria?.nome || "Sem categoria"}</p>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs font-bold ${status.classe}">${status.texto}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mt-4 text-sm">
+                        <div class="rounded-xl bg-slate-50 p-3">
+                            <div class="text-slate-500">Quantidade</div>
+                            <div class="font-extrabold">${produto.quantidade} ${produto.unidadeMedida || "un"}</div>
+                        </div>
+                        <div class="rounded-xl bg-slate-50 p-3">
+                            <div class="text-slate-500">Minimo</div>
+                            <div class="font-extrabold">${produto.estoqueMinimo}</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-4">
+                        ${botoesProduto(produto, produtoJson)}
+                    </div>
+                </article>`;
         });
+    }
+
+    function botoesProduto(produto, produtoJson) {
+        return `
+            <button onclick="abrirMovimentacao(${produto.id}, 'ENTRADA')" class="rounded-lg bg-emerald-600 text-white px-3 py-2 font-bold text-sm">Entrada</button>
+            <button onclick="abrirMovimentacao(${produto.id}, 'SAIDA')" class="rounded-lg bg-red-600 text-white px-3 py-2 font-bold text-sm">Saida</button>
+            <button onclick='editarProduto(${produtoJson})' class="rounded-lg bg-amber-500 text-white px-3 py-2 font-bold text-sm">Editar</button>
+            <button onclick='abrirConfirmacao(${produtoJson})' class="rounded-lg bg-slate-800 text-white px-3 py-2 font-bold text-sm">Inativar</button>`;
     }
 
     function filtrarProdutos() {
@@ -201,7 +283,7 @@
             : await apiFetch(`${API}/produtos`, { method: "POST", body: JSON.stringify(produto) });
 
         if (!response.ok) {
-            toast(await response.text(), "error");
+            toast(await readError(response), "error");
             return;
         }
 
@@ -224,29 +306,76 @@
         abrirModal(false);
     }
 
-    async function excluirProduto(id) {
-        if (!confirm("Deseja inativar este produto?")) return;
-        await apiFetch(`${API}/produtos/${id}`, { method: "DELETE" });
-        toast("Produto inativado.");
-        carregarProdutos();
+    function abrirMovimentacao(produtoId, tipo) {
+        const produto = todosProdutos.find(p => p.id === produtoId);
+        movimentacaoAtual = { produtoId, tipo };
+        document.getElementById("movTitulo").innerText = tipo === "ENTRADA" ? "Registrar entrada" : "Registrar saida";
+        document.getElementById("movProduto").innerText = produto ? `${produto.nome} - estoque atual: ${produto.quantidade} ${produto.unidadeMedida || "un"}` : "";
+        document.getElementById("movQuantidade").value = "";
+        document.getElementById("movObservacao").value = "";
+        document.getElementById("movErro").classList.add("hidden");
+        document.getElementById("modalMovimentacao").classList.remove("hidden");
+        document.getElementById("modalMovimentacao").classList.add("flex");
     }
 
-    async function movimentar(produtoId, tipo) {
-        const quantidade = prompt(`Quantidade para ${tipo === "ENTRADA" ? "entrada" : "saída"}:`);
-        if (!quantidade) return;
+    function fecharMovimentacao() {
+        document.getElementById("modalMovimentacao").classList.add("hidden");
+        document.getElementById("modalMovimentacao").classList.remove("flex");
+    }
 
-        const observacao = prompt("Observação opcional:") || "";
-        const response = await apiFetch(`${API}/movimentacoes`, {
-            method: "POST",
-            body: JSON.stringify({ produtoId, tipo, quantidade: parseInt(quantidade), observacao })
-        });
+    async function salvarMovimentacao() {
+        const quantidade = parseInt(document.getElementById("movQuantidade").value || "0");
+        const erro = document.getElementById("movErro");
 
-        if (!response.ok) {
-            toast(await response.text(), "error");
+        if (!movimentacaoAtual || quantidade <= 0) {
+            erro.innerText = "Informe uma quantidade maior que zero.";
+            erro.classList.remove("hidden");
             return;
         }
 
-        toast("Movimentação registrada.");
+        const response = await apiFetch(`${API}/movimentacoes`, {
+            method: "POST",
+            body: JSON.stringify({
+                produtoId: movimentacaoAtual.produtoId,
+                tipo: movimentacaoAtual.tipo,
+                quantidade,
+                observacao: document.getElementById("movObservacao").value
+            })
+        });
+
+        if (!response.ok) {
+            erro.innerHTML = await readError(response);
+            erro.classList.remove("hidden");
+            return;
+        }
+
+        fecharMovimentacao();
+        toast("Movimentacao registrada.");
+        carregarProdutos();
+    }
+
+    function abrirConfirmacao(produto) {
+        produtoParaInativar = produto;
+        document.getElementById("confirmacaoTexto").innerText = `Deseja inativar "${produto.nome}"? Ele sairá da listagem principal.`;
+        document.getElementById("modalConfirmacao").classList.remove("hidden");
+        document.getElementById("modalConfirmacao").classList.add("flex");
+    }
+
+    function fecharConfirmacao() {
+        document.getElementById("modalConfirmacao").classList.add("hidden");
+        document.getElementById("modalConfirmacao").classList.remove("flex");
+    }
+
+    async function confirmarInativacao() {
+        if (!produtoParaInativar) return;
+        const response = await apiFetch(`${API}/produtos/${produtoParaInativar.id}`, { method: "DELETE" });
+        if (!response.ok) {
+            toast(await readError(response), "error");
+            return;
+        }
+
+        fecharConfirmacao();
+        toast("Produto inativado.");
         carregarProdutos();
     }
 
