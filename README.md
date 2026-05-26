@@ -1,301 +1,264 @@
-# Inventory Management System - .NET
+# AVA Manager
 
-Sistema de gerenciamento de estoque desenvolvido em ASP.NET Core .NET 9, utilizando autenticação JWT, ASP.NET Identity, Entity Framework Core e SQL Server.
+Sistema web desenvolvido para a AVA - Associação Vida Animal, com foco em gestão interna de estoque, controle de movimentações, alertas de insumos, usuários com perfis de acesso e apoio à rotina da clínica veterinária popular.
 
-O projeto possui:
+## Objetivo
 
-* API REST (`AuthAPI`)
-* Interface Web MVC (`AuthUI`)
-* Controle de produtos
-* Controle de categorias
-* Movimentações de estoque
-* Autenticação e autorização com JWT
-* Integração com envio de e-mails
-* Swagger/OpenAPI
+O AVA Manager foi criado para centralizar processos que antes dependiam de controles manuais, ajudando a ONG a acompanhar produtos, medicamentos, materiais de limpeza, movimentações de entrada e saída, agendamentos do centro cirúrgico e relatórios operacionais.
 
----
+A proposta atende ao programa **Desenvolvimento de Sistema Web**, com uma aplicação responsiva para uso em computadores, tablets e celulares.
 
-# Tecnologias Utilizadas
+## Instituição Beneficiária
 
-* ASP.NET Core .NET 9
-* ASP.NET Identity
-* JWT Authentication
-* Entity Framework Core
-* SQL Server
-* Razor Views (MVC)
-* Swagger / OpenAPI
-* HTML5
-* CSS3
-* JavaScript
+- **Nome:** AVA - Associação Vida Animal
+- **Tipo:** ONG
+- **Endereço:** R. João Ramalho, 179 - Campos Elísios, Ribeirão Preto - SP
+- **Missão:** democratizar o acesso a serviços veterinários por meio da Clínica Veterinária Popular e ações de proteção animal.
 
----
+## Funcionalidades
 
-# Estrutura do Projeto
+- Autenticação com JWT.
+- Perfis de acesso: `Admin`, `Funcionario` e `VeterinarioParceiro`.
+- Logins temporários para veterinários parceiros, com data de expiração.
+- Dashboard administrativo com indicadores de estoque, movimentações, valor em estoque e próximos agendamentos.
+- Cadastro e gerenciamento de produtos.
+- Categorias de produtos, como medicamentos, limpeza, alimentos e materiais cirúrgicos.
+- Estoque mínimo configurável por produto.
+- Alertas de estoque baixo e produto esgotado.
+- Entrada e saída de produtos com histórico de movimentações.
+- Inativação e reativação de produtos.
+- Agendamento e controle da sala do centro cirúrgico.
+- Relatórios de estoque e movimentações.
+- Exportação CSV/Excel para apoio administrativo.
+- Interface web responsiva.
 
-```bash
+## Tecnologias
+
+- C#
+- ASP.NET Core MVC
+- ASP.NET Core Web API
+- ASP.NET Core Identity
+- JWT Bearer Authentication
+- Entity Framework Core
+- SQL Server
+- Razor Views
+- HTML, CSS e JavaScript
+- Tailwind CSS via CDN
+- Chart.js
+
+## Estrutura do Projeto
+
+```text
 Authentication/
-│
-├── AuthAPI/                 # API principal
-│   ├── Controllers/
-│   ├── Data/
-│   ├── Migrations/
-│   ├── Models/
-│   ├── Services/
-│   └── Program.cs
-│
-├── AuthUI/                  # Interface MVC
-│   ├── Controllers/
-│   ├── Models/
-│   ├── Views/
-│   ├── wwwroot/
-│   └── Program.cs
-│
-└── SECURITY.md
+├── AuthAPI/        # Backend, autenticação, regras de negócio e banco
+├── AuthUI/         # Frontend MVC/Razor
+├── .vscode/        # Tasks para rodar API e UI juntas no VS Code
+├── run-all.ps1     # Script para iniciar API e UI com um comando
+└── Authentication.slnx
 ```
-
----
-
-# Funcionalidades
-
-## Autenticação
-
-* Cadastro de usuários
-* Login com JWT
-* ASP.NET Identity
-* Controle de autorização
-* Rotas protegidas com `[Authorize]`
-
-## Produtos
-
-* Cadastro de produtos
-* Atualização de produtos
-* Exclusão de produtos
-* Listagem de produtos
-* Controle de estoque
-* Controle de produto ativo
-
-## Categorias
-
-* Cadastro de categorias
-* Relacionamento entre categorias e produtos
-
-## Movimentações
-
-* Entrada de estoque
-* Saída de estoque
-* Histórico de movimentações
-* Registro do usuário responsável
-
-## E-mail
-
-* Serviço de envio de e-mail
-* Controle de alerta de estoque baixo
-
-## Documentação
-
-* Swagger/OpenAPI integrado
-
----
-
-# Banco de Dados
-
-O sistema utiliza SQL Server com Entity Framework Core.
-
-Connection String encontrada no projeto:
-
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=RUANZITO\\SQLEXPRESS;Database=AuthDb;Trusted_Connection=True;TrustServerCertificate=True"
-}
-```
-
----
-
-# Configuração JWT
-
-O projeto utiliza autenticação JWT.
-
-Configuração presente no `appsettings.json`:
-
-```json
-"Jwt": {
-  "Key": "YourSuperSecrerertyher4tgdgetegbfghg43547ahehgw46u35y35g5tergdfgdtrex45436ergtdyret43rdget43tgdfgert4etg4tKey",
-  "Issuer": "YourIssuer",
-  "Audience": "YourAudience",
-  "ExpiryMinutes": 60
-}
-```
-
----
-
-# Principais Controllers
-
-## API
-
-### `UserAuthController`
-
-Responsável por:
-
-* Registro de usuários
-* Login
-* Geração de token JWT
-
-### `ProdutosController`
-
-Responsável por:
-
-* CRUD de produtos
-* Controle de estoque
-
-### `MovimentacoesController`
-
-Responsável por:
-
-* Entradas e saídas de estoque
-* Histórico de movimentações
-* Integração com e-mail
-
----
-
-# Migrations Encontradas
-
-O projeto já possui migrations configuradas:
-
-* `CreateIdentityTables`
-* `ProdutoAtivo`
-* `FixModels`
-
----
-
-# Como Executar o Projeto
 
 ## Pré-requisitos
 
-* .NET 9 SDK
-* SQL Server
-* Visual Studio 2022+
+- .NET SDK 9 ou superior.
+- SQL Server Express ou LocalDB.
+- Visual Studio, Visual Studio Code ou terminal PowerShell.
+- Certificado HTTPS de desenvolvimento do .NET.
 
----
+Verifique a versão instalada:
 
-## 1. Clonar o repositório
-
-```bash
-git clone https://github.com/Ruan-Marcelo/inventory-management-system-dotnet.git
+```powershell
+dotnet --version
 ```
 
----
+Configure o certificado HTTPS local:
 
-## 2. Entrar na pasta do projeto
-
-```bash
-cd inventory-management-system-dotnet
+```powershell
+dotnet dev-certs https --trust
 ```
 
----
+## Configuração do Banco
 
-## 3. Restaurar os pacotes
+A connection string fica em:
 
-```bash
+```text
+AuthAPI/appsettings.json
+```
+
+Configuração atual:
+
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=RUANZITO\\SQLEXPRESS;Database=AuthDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+}
+```
+
+Se sua máquina usa LocalDB, troque para:
+
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=AuthDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+}
+```
+
+Se usa SQL Server Express local:
+
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=AuthDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+}
+```
+
+## Migrations
+
+As migrations ficam em:
+
+```text
+AuthAPI/Migrations
+```
+
+Migrations existentes:
+
+- `CreateIdentityTables`: cria as tabelas base do Identity.
+- `ProdutoAtivo`: adiciona controle de produto ativo/inativo.
+- `FixModels`: ajusta modelos de estoque e movimentações.
+- `FixPreco`: ajusta precisão do preço.
+- `EmailAlertas`: adiciona controle de alertas enviados.
+- `AvaManagerCoreModules`: adiciona perfis temporários, categorias, estoque mínimo, centro cirúrgico e módulos principais.
+
+Para aplicar as migrations e criar/atualizar o banco:
+
+```powershell
+dotnet ef database update --project AuthAPI\AuthAPI.csproj
+```
+
+Para criar uma nova migration após alterar modelos:
+
+```powershell
+dotnet ef migrations add NomeDaMigration --project AuthAPI\AuthAPI.csproj
+```
+
+Para remover a última migration ainda não aplicada:
+
+```powershell
+dotnet ef migrations remove --project AuthAPI\AuthAPI.csproj
+```
+
+## Usuário Inicial
+
+Quando o sistema inicia e ainda não existe nenhum usuário, a API cria automaticamente um administrador:
+
+```text
+Email: admin@ava.local
+Senha: Admin@123
+Perfil: Admin
+```
+
+Depois do primeiro acesso, crie usuários reais pelo painel e altere/remova esse acesso padrão antes de usar em produção.
+
+## Como Rodar
+
+Na raiz do projeto:
+
+```powershell
+cd C:\Users\black\Downloads\Projetos\AVA\Authentication
+```
+
+Restaure e compile:
+
+```powershell
 dotnet restore
+dotnet build Authentication.slnx
 ```
 
----
+Aplique as migrations:
 
-## 4. Atualizar o banco de dados
-
-Dentro da pasta `AuthAPI`:
-
-```bash
-dotnet ef database update
+```powershell
+dotnet ef database update --project AuthAPI\AuthAPI.csproj
 ```
 
----
+Rode API e UI juntas:
 
-## 5. Executar a API
-
-```bash
-cd AuthAPI
-dotnet run
+```powershell
+.\run-all.ps1
 ```
 
----
+Endereços:
 
-## 6. Executar a interface MVC
-
-```bash
-cd AuthUI
-dotnet run
+```text
+Interface: https://localhost:7151
+API:       https://localhost:7004
+Swagger:   https://localhost:7004/swagger
 ```
 
----
+## Rodar Pelo VS Code
 
-# Swagger
+Também é possível rodar tudo por task:
 
-A API possui Swagger configurado.
+1. Abra o projeto no VS Code.
+2. Pressione `Ctrl + Shift + P`.
+3. Procure por `Tasks: Run Task`.
+4. Escolha `Rodar API + UI`.
+5. Acesse `https://localhost:7151`.
 
-Após executar o projeto:
+## Segurança
 
-```bash
-https://localhost:<porta>/swagger
+O sistema usa:
+
+- Tokens JWT para autenticação da API.
+- Rotas protegidas com `[Authorize]`.
+- Perfis por role para separar permissões.
+- Bloqueio de usuários inativos.
+- Expiração de usuários temporários.
+- Validações básicas de produto, estoque e agendamento.
+
+Pontos importantes antes de produção:
+
+- Alterar a chave JWT do `appsettings.json`.
+- Remover credenciais reais do código e usar variáveis de ambiente ou user secrets.
+- Configurar SMTP real em ambiente seguro.
+- Trocar o usuário admin inicial.
+- Publicar com HTTPS válido.
+
+## Relatórios
+
+O backend fornece endpoints de relatório em:
+
+```text
+GET /api/Relatorios/dashboard
+GET /api/Relatorios/estoque
+GET /api/Relatorios/estoque.csv
+GET /api/Relatorios/movimentacoes
 ```
 
----
+Esses relatórios apoiam:
 
-# Segurança
+- controle de estoque atual;
+- produtos abaixo do mínimo;
+- produtos esgotados;
+- valor total estimado em estoque;
+- histórico de entrada e saída;
+- acompanhamento operacional da clínica.
 
-O projeto possui:
+## Fluxo Recomendado Para Desenvolvimento
 
-* JWT Authentication
-* ASP.NET Identity
-* Rotas protegidas
-* Controle de autorização
-* Política de segurança documentada em `SECURITY.md`
+1. Criar branch ou trabalhar em commits pequenos.
+2. Alterar modelos e regras de negócio.
+3. Criar migration quando houver alteração de banco.
+4. Rodar `dotnet build Authentication.slnx`.
+5. Aplicar migration com `dotnet ef database update`.
+6. Testar login, estoque, movimentações e relatórios.
+7. Fazer commit com mensagem clara.
 
----
+## Status Atual
 
-# Interface Web
+O projeto já cobre o núcleo do sistema descrito no documento:
 
-O projeto `AuthUI` utiliza ASP.NET MVC com Razor Views.
+- gestão de estoque;
+- controle de usuários e permissões;
+- alertas por nível mínimo;
+- dashboard;
+- relatórios;
+- centro cirúrgico;
+- responsividade web.
 
-Views identificadas no projeto:
-
-* Produtos
-* Movimentações
-
----
-
-# Dependências Encontradas
-
-Pacotes identificados no projeto:
-
-* Microsoft.AspNetCore.Authentication.JwtBearer
-* Microsoft.AspNetCore.Identity.EntityFrameworkCore
-* Microsoft.EntityFrameworkCore.SqlServer
-* Swashbuckle.AspNetCore
-* Microsoft.AspNetCore.OpenApi
-
----
-
-# Objetivo do Projeto
-
-O sistema foi desenvolvido para gerenciamento de estoque e autenticação de usuários utilizando tecnologias modernas do ecossistema .NET.
-
----
-
-# Autor
-
-## entity["people","Ruan Marcelo","Desenvolvedor Full Stack"]
-
-GitHub:
-
-urlRuan-Marcelo GitHub[https://github.com/Ruan-Marcelo](https://github.com/Ruan-Marcelo)
-
-Projeto:
-
-urlinventory-management-system-dotnet[https://github.com/Ruan-Marcelo/inventory-management-system-dotnet](https://github.com/Ruan-Marcelo/inventory-management-system-dotnet)
-
----
-
-# Licença
-
-Este projeto está disponível para fins de estudo e desenvolvimento.
+As próximas melhorias naturais são testes automatizados, publicação em servidor e configuração segura de e-mail em produção.
