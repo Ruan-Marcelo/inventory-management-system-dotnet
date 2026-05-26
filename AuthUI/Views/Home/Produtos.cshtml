@@ -1,447 +1,267 @@
-﻿@{
-    ViewData["Title"] = "Produtos";
+@{
+    ViewData["Title"] = "Estoque";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-<div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+<div class="space-y-6">
+    <section class="app-card p-4 sm:p-5">
+        <div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-extrabold text-slate-900">Produtos e insumos</h2>
+                <p class="text-sm text-slate-500">Medicamentos, materiais cirúrgicos, limpeza e demais recursos da AVA.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input id="filtroProduto" class="field sm:w-72" placeholder="Buscar por nome, código ou categoria" oninput="filtrarProdutos()" />
+                <select id="filtroEstoque" class="field sm:w-48" onchange="filtrarProdutos()">
+                    <option value="">Todos os status</option>
+                    <option value="baixo">Estoque baixo</option>
+                    <option value="zerado">Esgotado</option>
+                    <option value="ok">Estoque OK</option>
+                </select>
+                <button onclick="abrirModal()" class="btn-primary">
+                    <i class="fa fa-plus mr-2"></i>Novo produto
+                </button>
+            </div>
+        </div>
+    </section>
 
-    <h1 class="text-2xl font-bold text-gray-800">
-        Produtos
-    </h1>
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Produtos ativos</p>
+            <div id="cardTotal" class="text-3xl font-extrabold text-slate-900 mt-1">0</div>
+        </div>
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Abaixo do mínimo</p>
+            <div id="cardBaixo" class="text-3xl font-extrabold text-amber-600 mt-1">0</div>
+        </div>
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Esgotados</p>
+            <div id="cardZerado" class="text-3xl font-extrabold text-red-600 mt-1">0</div>
+        </div>
+    </section>
 
-    <div class="flex gap-3 flex-wrap">
-
-        <button onclick="abrirModal()"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
-            + Novo Produto
-        </button>
-
-        <button onclick="carregarInativos()"
-                class="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg">
-            Produtos Inativos
-        </button>
-
-    </div>
-
-    <div class="flex gap-3 flex-wrap">
-
-        <input type="text"
-               id="filtroProduto"
-               placeholder="Buscar produto..."
-               class="border rounded-lg px-4 py-2 w-64"
-               onkeyup="filtrarProdutos()" />
-
-        <select id="filtroEstoque"
-                onchange="filtrarProdutos()"
-                class="border rounded-lg px-4 py-2">
-
-            <option value="">Todos</option>
-            <option value="baixo">Estoque Baixo</option>
-            <option value="medio">Estoque Médio</option>
-            <option value="alto">Estoque Alto</option>
-
-        </select>
-
-    </div>
-
+    <section class="app-card table-wrap">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-slate-600">
+                <tr>
+                    <th class="p-4 text-left">Produto</th>
+                    <th class="p-4 text-left">Categoria</th>
+                    <th class="p-4 text-left">Estoque</th>
+                    <th class="p-4 text-left">Preço</th>
+                    <th class="p-4 text-left">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaProdutos"></tbody>
+        </table>
+    </section>
 </div>
 
-<!-- TABELA -->
-<div class="bg-white rounded-xl shadow overflow-hidden">
-
-    <table class="w-full">
-
-        <thead class="bg-gray-100 text-gray-700">
-            <tr>
-                <th class="p-4 text-left">Nome</th>
-                <th class="p-4 text-left">Preço</th>
-                <th class="p-4 text-left">Quantidade</th>
-                <th class="p-4 text-left">Ações</th>
-            </tr>
-        </thead>
-
-        <tbody id="tabelaProdutos">
-        </tbody>
-
-    </table>
-
-</div>
-
-<!-- MODAL -->
-<div id="modal"
-     class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-
-    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl">
-
-        <h2 id="tituloModal" class="text-xl font-bold mb-4">
-            Novo Produto
-        </h2>
-
-        <div class="space-y-4">
-
-            <input id="nome"
-                   type="text"
-                   placeholder="Nome"
-                   class="w-full border rounded-lg p-3" />
-
-            <input id="descricao"
-                   type="text"
-                   placeholder="Descrição"
-                   class="w-full border rounded-lg p-3" />
-
-            <input id="preco"
-                   type="number"
-                   placeholder="Preço"
-                   class="w-full border rounded-lg p-3" />
-
-            <input id="quantidade"
-                   type="number"
-                   placeholder="Quantidade"
-                   class="w-full border rounded-lg p-3" />
-
+<div id="modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-slate-950/60 p-4">
+    <div class="app-card w-full max-w-2xl p-5 sm:p-6">
+        <div class="flex items-center justify-between gap-4 mb-5">
+            <div>
+                <h2 id="tituloModal" class="text-xl font-extrabold text-slate-900">Novo produto</h2>
+                <p class="text-sm text-slate-500">Preencha os dados de controle do estoque.</p>
+            </div>
+            <button onclick="fecharModal()" class="w-10 h-10 rounded-xl bg-slate-100">
+                <i class="fa fa-xmark"></i>
+            </button>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6">
-
-            <button onclick="fecharModal()"
-                    class="bg-gray-300 px-4 py-2 rounded-lg">
-                Cancelar
-            </button>
-
-            <button onclick="salvarProduto()"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg">
-                Salvar
-            </button>
-
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <input id="nome" class="field" placeholder="Nome do produto" />
+            <input id="codigoInterno" class="field" placeholder="Código interno" />
+            <select id="categoriaId" class="field"></select>
+            <input id="unidadeMedida" class="field" placeholder="Unidade: un, cx, ml..." value="un" />
+            <input id="preco" type="number" min="0" step="0.01" class="field" placeholder="Preço unitário" />
+            <input id="quantidade" type="number" min="0" class="field" placeholder="Quantidade atual" />
+            <input id="estoqueMinimo" type="number" min="0" class="field" placeholder="Estoque mínimo" />
+            <input id="descricao" class="field" placeholder="Descrição/observação" />
         </div>
 
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+            <button onclick="fecharModal()" class="btn-soft">Cancelar</button>
+            <button onclick="salvarProduto()" class="btn-primary">Salvar produto</button>
+        </div>
     </div>
-
 </div>
 
 @section Scripts {
+<script>
+    let editandoId = null;
+    let todosProdutos = [];
+    let categorias = [];
 
-    <script>
+    carregarTudo();
 
-        const API = "https://localhost:7004/api";
+    async function carregarTudo() {
+        await carregarCategorias();
+        await carregarProdutos();
+    }
 
-        let editandoId = null;
+    async function carregarCategorias() {
+        const response = await apiFetch(`${API}/categorias`);
+        categorias = response.ok ? await response.json() : [];
+        const select = document.getElementById("categoriaId");
+        select.innerHTML = `<option value="">Sem categoria</option>`;
+        categorias.forEach(c => select.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
+    }
 
-        let todosProdutos = [];
+    async function carregarProdutos() {
+        const response = await apiFetch(`${API}/produtos`);
+        todosProdutos = response.ok ? await response.json() : [];
+        atualizarCards();
+        renderizarProdutos(todosProdutos);
+    }
 
-        // =========================
-        // 🔍 CARREGAR PRODUTOS
-        // =========================
-        async function carregarProdutos() {
+    function atualizarCards() {
+        document.getElementById("cardTotal").innerText = todosProdutos.length;
+        document.getElementById("cardBaixo").innerText = todosProdutos.filter(p => p.quantidade > 0 && p.quantidade <= p.estoqueMinimo).length;
+        document.getElementById("cardZerado").innerText = todosProdutos.filter(p => p.quantidade <= 0).length;
+    }
 
-            const response = await apiFetch(`${API}/produtos`);
+    function statusProduto(produto) {
+        if (produto.quantidade <= 0) return { texto: "Esgotado", classe: "bg-red-100 text-red-700" };
+        if (produto.quantidade <= produto.estoqueMinimo) return { texto: "Baixo", classe: "bg-amber-100 text-amber-700" };
+        return { texto: "OK", classe: "bg-emerald-100 text-emerald-700" };
+    }
 
-            todosProdutos = await response.json();
+    function renderizarProdutos(produtos) {
+        const tabela = document.getElementById("tabelaProdutos");
+        tabela.innerHTML = "";
 
-            renderizarProdutos(todosProdutos);
+        if (produtos.length === 0) {
+            tabela.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Nenhum produto encontrado.</td></tr>`;
+            return;
         }
 
-        // =========================
-        // 📦 CARREGAR INATIVOS
-        // =========================
-        async function carregarInativos() {
+        produtos.forEach(produto => {
+            const status = statusProduto(produto);
+            tabela.innerHTML += `
+                <tr class="border-t border-slate-100 hover:bg-slate-50">
+                    <td class="p-4">
+                        <div class="font-extrabold text-slate-900">${produto.nome}</div>
+                        <div class="text-xs text-slate-500">${produto.codigoInterno || "Sem código"} · ${produto.descricao || "Sem descrição"}</div>
+                    </td>
+                    <td class="p-4">${produto.categoria?.nome || "Sem categoria"}</td>
+                    <td class="p-4">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-extrabold">${produto.quantidade} ${produto.unidadeMedida || "un"}</span>
+                            <span class="px-2 py-1 rounded-full text-xs font-bold ${status.classe}">${status.texto}</span>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">Mínimo: ${produto.estoqueMinimo}</div>
+                    </td>
+                    <td class="p-4">R$ ${Number(produto.preco).toFixed(2)}</td>
+                    <td class="p-4">
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="movimentar(${produto.id}, 'ENTRADA')" class="rounded-lg bg-emerald-600 text-white px-3 py-2 font-bold">Entrada</button>
+                            <button onclick="movimentar(${produto.id}, 'SAIDA')" class="rounded-lg bg-red-600 text-white px-3 py-2 font-bold">Saída</button>
+                            <button onclick='editarProduto(${JSON.stringify(produto)})' class="rounded-lg bg-amber-500 text-white px-3 py-2 font-bold">Editar</button>
+                            <button onclick="excluirProduto(${produto.id})" class="rounded-lg bg-slate-800 text-white px-3 py-2 font-bold">Inativar</button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+    }
 
-            const response = await apiFetch(`${API}/produtos/inativos`);
+    function filtrarProdutos() {
+        const texto = document.getElementById("filtroProduto").value.toLowerCase();
+        const estoque = document.getElementById("filtroEstoque").value;
 
-            const produtos = await response.json();
+        let filtrados = todosProdutos.filter(p =>
+            `${p.nome} ${p.codigoInterno || ""} ${p.categoria?.nome || ""}`.toLowerCase().includes(texto)
+        );
 
-            const tabela = document.getElementById("tabelaProdutos");
+        if (estoque === "baixo") filtrados = filtrados.filter(p => p.quantidade > 0 && p.quantidade <= p.estoqueMinimo);
+        if (estoque === "zerado") filtrados = filtrados.filter(p => p.quantidade <= 0);
+        if (estoque === "ok") filtrados = filtrados.filter(p => p.quantidade > p.estoqueMinimo);
 
-            tabela.innerHTML = "";
+        renderizarProdutos(filtrados);
+    }
 
-            produtos.forEach(produto => {
+    async function salvarProduto() {
+        const produto = {
+            nome: document.getElementById("nome").value,
+            descricao: document.getElementById("descricao").value,
+            codigoInterno: document.getElementById("codigoInterno").value,
+            categoriaId: document.getElementById("categoriaId").value || null,
+            unidadeMedida: document.getElementById("unidadeMedida").value || "un",
+            preco: parseFloat(document.getElementById("preco").value || "0"),
+            quantidade: parseInt(document.getElementById("quantidade").value || "0"),
+            estoqueMinimo: parseInt(document.getElementById("estoqueMinimo").value || "0")
+        };
 
-                tabela.innerHTML += `
-                    <tr class="border-b bg-gray-50">
+        const response = editandoId
+            ? await apiFetch(`${API}/produtos/${editandoId}`, { method: "PUT", body: JSON.stringify({ id: editandoId, ...produto }) })
+            : await apiFetch(`${API}/produtos`, { method: "POST", body: JSON.stringify(produto) });
 
-                        <td class="p-4 text-gray-500">
-                            ${produto.nome}
-                        </td>
-
-                        <td class="p-4">
-                            R$ ${produto.preco}
-                        </td>
-
-                        <td class="p-4">
-                            ${produto.quantidade}
-                        </td>
-
-                        <td class="p-4">
-
-                            <button onclick="reativarProduto(${produto.id})"
-                                    class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">
-                                Reativar
-                            </button>
-
-                        </td>
-
-                    </tr>
-                `;
-            });
+        if (!response.ok) {
+            toast(await response.text(), "error");
+            return;
         }
 
-        // =========================
-        // 🎨 RENDERIZAR PRODUTOS
-        // =========================
-        function renderizarProdutos(produtos) {
-
-            const tabela = document.getElementById("tabelaProdutos");
-
-            tabela.innerHTML = "";
-
-            produtos.forEach(produto => {
-
-                let corEstoque = "text-green-600 font-bold";
-
-                if (produto.quantidade <= 5) {
-                    corEstoque = "text-red-600 font-bold";
-                }
-                else if (produto.quantidade <= 10) {
-                    corEstoque = "text-yellow-500 font-bold";
-                }
-
-                tabela.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50">
-
-                        <td class="p-4">
-                            ${produto.nome}
-                        </td>
-
-                        <td class="p-4">
-                            R$ ${produto.preco}
-                        </td>
-
-                        <td class="p-4 ${corEstoque}">
-                            ${produto.quantidade}
-                        </td>
-
-                        <td class="p-4 flex gap-2 flex-wrap">
-
-                            <button onclick="movimentar(${produto.id}, 'ENTRADA')"
-                                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">
-                                Entrada
-                            </button>
-
-                            <button onclick="movimentar(${produto.id}, 'SAIDA')"
-                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-                                Saída
-                            </button>
-
-                            <button onclick='editarProduto(${JSON.stringify(produto)})'
-                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
-                                Editar
-                            </button>
-
-                            <button onclick="excluirProduto(${produto.id})"
-                                    class="bg-gray-800 hover:bg-black text-white px-3 py-1 rounded">
-                                Inativar
-                            </button>
-
-                        </td>
-
-                    </tr>
-                `;
-            });
-        }
-
-        // =========================
-        // 🔎 FILTRAR PRODUTOS
-        // =========================
-        function filtrarProdutos() {
-
-            const texto = document.getElementById("filtroProduto")
-                .value
-                .toLowerCase();
-
-            const estoque = document.getElementById("filtroEstoque").value;
-
-            let filtrados = todosProdutos.filter(p =>
-                p.nome.toLowerCase().includes(texto)
-            );
-
-            if (estoque === "baixo") {
-                filtrados = filtrados.filter(p => p.quantidade <= 5);
-            }
-
-            if (estoque === "medio") {
-                filtrados = filtrados.filter(p =>
-                    p.quantidade > 5 && p.quantidade <= 10
-                );
-            }
-
-            if (estoque === "alto") {
-                filtrados = filtrados.filter(p => p.quantidade > 10);
-            }
-
-            renderizarProdutos(filtrados);
-        }
-
-        // =========================
-        // 💾 SALVAR PRODUTO
-        // =========================
-        async function salvarProduto() {
-
-            const produto = {
-
-                nome: document.getElementById("nome").value,
-                descricao: document.getElementById("descricao").value,
-                preco: parseFloat(document.getElementById("preco").value),
-                quantidade: parseInt(document.getElementById("quantidade").value)
-
-            };
-
-            if (editandoId) {
-
-                await apiFetch(`${API}/produtos/${editandoId}`, {
-
-                    method: "PUT",
-
-                    body: JSON.stringify({
-                        id: editandoId,
-                        ...produto
-                    })
-
-                });
-
-            } else {
-
-                await apiFetch(`${API}/produtos`, {
-
-                    method: "POST",
-
-                    body: JSON.stringify(produto)
-
-                });
-            }
-
-            fecharModal();
-
-            carregarProdutos();
-        }
-
-        // =========================
-        // ✏️ EDITAR PRODUTO
-        // =========================
-        function editarProduto(produto) {
-
-            editandoId = produto.id;
-
-            document.getElementById("tituloModal").innerText = "Editar Produto";
-
-            document.getElementById("nome").value = produto.nome;
-            document.getElementById("descricao").value = produto.descricao;
-            document.getElementById("preco").value = produto.preco;
-            document.getElementById("quantidade").value = produto.quantidade;
-
-            abrirModal();
-        }
-
-        // =========================
-        // ❌ INATIVAR PRODUTO
-        // =========================
-        async function excluirProduto(id) {
-
-            const confirmar = confirm("Deseja inativar este produto?");
-
-            if (!confirmar) return;
-
-            await apiFetch(`${API}/produtos/${id}`, {
-
-                method: "DELETE"
-
-            });
-
-            carregarProdutos();
-        }
-
-        // =========================
-        // ♻️ REATIVAR PRODUTO
-        // =========================
-        async function reativarProduto(id) {
-
-            await apiFetch(`${API}/produtos/reativar/${id}`, {
-
-                method: "PUT"
-
-            });
-
-            alert("Produto reativado!");
-
-            carregarProdutos();
-        }
-
-        // =========================
-        // 🔄 MOVIMENTAÇÃO
-        // =========================
-        async function movimentar(produtoId, tipo) {
-
-            const quantidade = prompt(`Quantidade para ${tipo}:`);
-
-            if (!quantidade) return;
-
-            await apiFetch(`${API}/movimentacoes`, {
-
-                method: "POST",
-
-                body: JSON.stringify({
-
-                    produtoId,
-                    tipo,
-                    quantidade: parseInt(quantidade)
-
-                })
-
-            });
-
-            carregarProdutos();
-        }
-
-        // =========================
-        // 🧹 LIMPAR FORM
-        // =========================
-        function limparFormulario() {
-
-            editandoId = null;
-
-            document.getElementById("tituloModal").innerText = "Novo Produto";
-
-            document.getElementById("nome").value = "";
-            document.getElementById("descricao").value = "";
-            document.getElementById("preco").value = "";
-            document.getElementById("quantidade").value = "";
-        }
-
-        // =========================
-        // 🎯 MODAL
-        // =========================
-        function abrirModal() {
-
-            document.getElementById("modal")
-                .classList.remove("hidden");
-
-            document.getElementById("modal")
-                .classList.add("flex");
-        }
-
-        function fecharModal() {
-
-            limparFormulario();
-
-            document.getElementById("modal")
-                .classList.add("hidden");
-
-            document.getElementById("modal")
-                .classList.remove("flex");
-        }
-
-        // 🚀 INIT
+        fecharModal();
+        toast("Produto salvo com sucesso.");
         carregarProdutos();
+    }
 
-    </script>
+    function editarProduto(produto) {
+        editandoId = produto.id;
+        document.getElementById("tituloModal").innerText = "Editar produto";
+        document.getElementById("nome").value = produto.nome || "";
+        document.getElementById("descricao").value = produto.descricao || "";
+        document.getElementById("codigoInterno").value = produto.codigoInterno || "";
+        document.getElementById("categoriaId").value = produto.categoriaId || "";
+        document.getElementById("unidadeMedida").value = produto.unidadeMedida || "un";
+        document.getElementById("preco").value = produto.preco || 0;
+        document.getElementById("quantidade").value = produto.quantidade || 0;
+        document.getElementById("estoqueMinimo").value = produto.estoqueMinimo || 0;
+        abrirModal(false);
+    }
 
+    async function excluirProduto(id) {
+        if (!confirm("Deseja inativar este produto?")) return;
+        await apiFetch(`${API}/produtos/${id}`, { method: "DELETE" });
+        toast("Produto inativado.");
+        carregarProdutos();
+    }
+
+    async function movimentar(produtoId, tipo) {
+        const quantidade = prompt(`Quantidade para ${tipo === "ENTRADA" ? "entrada" : "saída"}:`);
+        if (!quantidade) return;
+
+        const observacao = prompt("Observação opcional:") || "";
+        const response = await apiFetch(`${API}/movimentacoes`, {
+            method: "POST",
+            body: JSON.stringify({ produtoId, tipo, quantidade: parseInt(quantidade), observacao })
+        });
+
+        if (!response.ok) {
+            toast(await response.text(), "error");
+            return;
+        }
+
+        toast("Movimentação registrada.");
+        carregarProdutos();
+    }
+
+    function abrirModal(limpar = true) {
+        if (limpar) limparFormulario();
+        document.getElementById("modal").classList.remove("hidden");
+        document.getElementById("modal").classList.add("flex");
+    }
+
+    function fecharModal() {
+        document.getElementById("modal").classList.add("hidden");
+        document.getElementById("modal").classList.remove("flex");
+    }
+
+    function limparFormulario() {
+        editandoId = null;
+        document.getElementById("tituloModal").innerText = "Novo produto";
+        ["nome", "descricao", "codigoInterno", "preco", "quantidade", "estoqueMinimo"].forEach(id => document.getElementById(id).value = "");
+        document.getElementById("unidadeMedida").value = "un";
+        document.getElementById("categoriaId").value = "";
+    }
+</script>
 }

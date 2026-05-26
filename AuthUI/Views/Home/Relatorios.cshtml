@@ -1,0 +1,157 @@
+@{
+    ViewData["Title"] = "Relatórios";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="space-y-6">
+    <section class="app-card p-5">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-extrabold text-slate-900">Relatórios operacionais</h2>
+                <p class="text-sm text-slate-500">Exporte e acompanhe dados de estoque e movimentações.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="baixarEstoqueCsv()" class="btn-primary"><i class="fa fa-download mr-2"></i>Estoque CSV</button>
+                <button onclick="exportarMovimentacoesExcel()" class="btn-soft"><i class="fa fa-file-excel mr-2"></i>Movimentações Excel</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <input id="inicio" type="date" class="field" />
+        <input id="fim" type="date" class="field" />
+        <select id="tipo" class="field">
+            <option value="">Todos os tipos</option>
+            <option value="ENTRADA">Entrada</option>
+            <option value="SAIDA">Saída</option>
+        </select>
+        <button onclick="carregarRelatorios()" class="btn-primary">Filtrar</button>
+    </section>
+
+    <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="app-card table-wrap">
+            <div class="p-5 border-b border-slate-100">
+                <h2 class="text-lg font-extrabold text-slate-900">Estoque atual</h2>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-slate-600">
+                    <tr>
+                        <th class="p-4 text-left">Produto</th>
+                        <th class="p-4 text-left">Qtd.</th>
+                        <th class="p-4 text-left">Valor</th>
+                        <th class="p-4 text-left">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaEstoque"></tbody>
+            </table>
+        </div>
+
+        <div class="app-card table-wrap">
+            <div class="p-5 border-b border-slate-100">
+                <h2 class="text-lg font-extrabold text-slate-900">Movimentações</h2>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-slate-600">
+                    <tr>
+                        <th class="p-4 text-left">Produto</th>
+                        <th class="p-4 text-left">Tipo</th>
+                        <th class="p-4 text-left">Qtd.</th>
+                        <th class="p-4 text-left">Data</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaMovimentacoes"></tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script>
+    let estoque = [];
+    let movimentacoes = [];
+
+    carregarRelatorios();
+
+    async function carregarRelatorios() {
+        await Promise.all([carregarEstoque(), carregarMovimentacoes()]);
+    }
+
+    async function carregarEstoque() {
+        const response = await apiFetch(`${API}/relatorios/estoque`);
+        estoque = response.ok ? await response.json() : [];
+        const tabela = document.getElementById("tabelaEstoque");
+        tabela.innerHTML = "";
+
+        estoque.forEach(p => {
+            const statusClass = p.status === "OK" ? "bg-emerald-100 text-emerald-700" : p.status === "Baixo" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700";
+            tabela.innerHTML += `
+                <tr class="border-t border-slate-100">
+                    <td class="p-4">
+                        <div class="font-extrabold text-slate-900">${p.nome}</div>
+                        <div class="text-xs text-slate-500">${p.categoria}</div>
+                    </td>
+                    <td class="p-4">${p.quantidade} ${p.unidadeMedida}</td>
+                    <td class="p-4">${Number(p.valorTotal).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+                    <td class="p-4"><span class="px-2 py-1 rounded-full text-xs font-bold ${statusClass}">${p.status}</span></td>
+                </tr>`;
+        });
+    }
+
+    async function carregarMovimentacoes() {
+        const params = new URLSearchParams();
+        if (document.getElementById("inicio").value) params.append("inicio", `${document.getElementById("inicio").value}T00:00:00`);
+        if (document.getElementById("fim").value) params.append("fim", `${document.getElementById("fim").value}T23:59:59`);
+        if (document.getElementById("tipo").value) params.append("tipo", document.getElementById("tipo").value);
+
+        const response = await apiFetch(`${API}/relatorios/movimentacoes?${params}`);
+        movimentacoes = response.ok ? await response.json() : [];
+        const tabela = document.getElementById("tabelaMovimentacoes");
+        tabela.innerHTML = "";
+
+        movimentacoes.forEach(m => {
+            tabela.innerHTML += `
+                <tr class="border-t border-slate-100">
+                    <td class="p-4">
+                        <div class="font-extrabold text-slate-900">${m.produto}</div>
+                        <div class="text-xs text-slate-500">${m.categoria}</div>
+                    </td>
+                    <td class="p-4 font-bold ${m.tipo === "ENTRADA" ? "text-emerald-600" : "text-red-600"}">${m.tipo}</td>
+                    <td class="p-4">${m.quantidade}</td>
+                    <td class="p-4">${new Date(m.dataMovimentacao).toLocaleString("pt-BR")}</td>
+                </tr>`;
+        });
+    }
+
+    async function baixarEstoqueCsv() {
+        const response = await apiFetch(`${API}/relatorios/estoque.csv`);
+        const blob = await response.blob();
+        baixarBlob(blob, "relatorio-estoque.csv");
+    }
+
+    function exportarMovimentacoesExcel() {
+        const dados = movimentacoes.map(m => ({
+            Produto: m.produto,
+            Categoria: m.categoria,
+            Tipo: m.tipo,
+            Quantidade: m.quantidade,
+            Data: new Date(m.dataMovimentacao).toLocaleString("pt-BR"),
+            Observacao: m.observacao || ""
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dados);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Movimentacoes");
+        XLSX.writeFile(workbook, "relatorio-movimentacoes.xlsx");
+    }
+
+    function baixarBlob(blob, nome) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = nome;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+</script>
+}

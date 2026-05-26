@@ -172,6 +172,7 @@
                 const data = await response.json();
 
                 localStorage.setItem('token', data.token);
+                localStorage.setItem('usuario', JSON.stringify(data.usuario));
 
                 statusMessage.innerHTML = `
                     <div class="bg-green-100 text-green-700 p-3 rounded-2xl">

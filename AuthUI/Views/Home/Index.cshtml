@@ -1,415 +1,162 @@
-﻿@{
+@{
     Layout = "_DashboardLayout";
     ViewData["Title"] = "Dashboard";
 }
 
 <div class="space-y-6">
-
-
-    <!-- HEADER -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-
-        <div class="bg-blue-600 text-white px-4 py-2 rounded-xl shadow">
-            <span id="dataAtual"></span>
+    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Produtos ativos</p>
+            <div id="totalProdutos" class="text-3xl font-extrabold text-slate-900 mt-2">0</div>
         </div>
-
-    </div>
-
-    <!-- ALERTAS -->
-    <div class="bg-white rounded-2xl shadow p-6">
-
-        <div class="flex items-center justify-between mb-6">
-
-            <h2 class="text-xl font-bold text-gray-800">
-                Alertas do Sistema
-            </h2>
-
-            <i class="fa fa-bell text-red-500 text-xl"></i>
-
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Estoque baixo</p>
+            <div id="estoqueBaixo" class="text-3xl font-extrabold text-amber-600 mt-2">0</div>
         </div>
-
-        <div id="listaAlertas" class="space-y-3">
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Esgotados</p>
+            <div id="produtosEsgotados" class="text-3xl font-extrabold text-red-600 mt-2">0</div>
         </div>
-
-    </div>
-
-    <!-- CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-
-        <!-- TOTAL PRODUTOS -->
-        <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-blue-500">
-
-            <div class="flex items-center justify-between">
-
-                <div>
-                    <p class="text-gray-500 text-sm">
-                        Total Produtos
-                    </p>
-
-                    <h2 id="totalProdutos"
-                        class="text-3xl font-bold text-gray-800 mt-2">
-                        0
-                    </h2>
-                </div>
-
-                <div class="bg-blue-100 p-4 rounded-xl">
-                    <i class="fa fa-box text-blue-600 text-2xl"></i>
-                </div>
-
-            </div>
-
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Movimentações</p>
+            <div id="totalMovimentacoes" class="text-3xl font-extrabold text-blue-600 mt-2">0</div>
         </div>
-
-        <!-- ESTOQUE BAIXO -->
-        <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-yellow-500">
-
-            <div class="flex items-center justify-between">
-
-                <div>
-                    <p class="text-gray-500 text-sm">
-                        Estoque Baixo
-                    </p>
-
-                    <h2 id="estoqueBaixo"
-                        class="text-3xl font-bold text-yellow-600 mt-2">
-                        0
-                    </h2>
-                </div>
-
-                <div class="bg-yellow-100 p-4 rounded-xl">
-                    <i class="fa fa-triangle-exclamation text-yellow-600 text-2xl"></i>
-                </div>
-
-            </div>
-
+        <div class="app-card p-5">
+            <p class="text-sm text-slate-500">Valor em estoque</p>
+            <div id="valorTotalEstoque" class="text-2xl font-extrabold text-emerald-600 mt-3">R$ 0,00</div>
         </div>
+    </section>
 
-        <!-- PRODUTOS ESGOTADOS -->
-        <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-red-500">
-
-            <div class="flex items-center justify-between">
-
-                <div>
-                    <p class="text-gray-500 text-sm">
-                        Produtos Esgotados
-                    </p>
-
-                    <h2 id="produtosEsgotados"
-                        class="text-3xl font-bold text-red-600 mt-2">
-                        0
-                    </h2>
-                </div>
-
-                <div class="bg-red-100 p-4 rounded-xl">
-                    <i class="fa fa-xmark text-red-600 text-2xl"></i>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- MOVIMENTAÇÕES -->
-        <div class="bg-white rounded-2xl shadow p-6 border-l-4 border-green-500">
-
-            <div class="flex items-center justify-between">
-
-                <div>
-                    <p class="text-gray-500 text-sm">
-                        Movimentações
-                    </p>
-
-                    <h2 id="totalMovimentacoes"
-                        class="text-3xl font-bold text-green-600 mt-2">
-                        0
-                    </h2>
-                </div>
-
-                <div class="bg-green-100 p-4 rounded-xl">
-                    <i class="fa fa-arrow-right-arrow-left text-green-600 text-2xl"></i>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- GRÁFICOS -->
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-
-        <!-- GRÁFICO ESTOQUE -->
-        <div class="bg-white rounded-2xl shadow p-6">
-
+    <section class="grid grid-cols-1 xl:grid-cols-[1.2fr_.8fr] gap-6">
+        <div class="app-card p-5">
             <div class="flex items-center justify-between mb-4">
-
-                <h2 class="text-xl font-bold text-gray-800">
-                    Estoque Atual
-                </h2>
-
-                <i class="fa fa-chart-column text-blue-600"></i>
-
+                <h2 class="text-lg font-extrabold text-slate-900">Alertas de estoque</h2>
+                <i class="fa fa-triangle-exclamation text-amber-500"></i>
             </div>
-
-            <canvas id="graficoEstoque"></canvas>
-
+            <div id="listaAlertas" class="space-y-3"></div>
         </div>
 
-        <!-- GRÁFICO MOVIMENTAÇÕES -->
-        <div class="bg-white rounded-2xl shadow p-6 max-w-2xl mx-auto">
-
+        <div class="app-card p-5">
             <div class="flex items-center justify-between mb-4">
-
-                <h2 class="text-xl font-bold text-gray-800">
-                    Entradas x Saídas
-                </h2>
-
-                <i class="fa fa-chart-pie text-green-600 text-xl"></i>
-
+                <h2 class="text-lg font-extrabold text-slate-900">Próximas cirurgias</h2>
+                <i class="fa fa-calendar-check text-blue-600"></i>
             </div>
-
-            <div class="h-80">
-                <canvas id="graficoMovimentacoes"></canvas>
-            </div>
-
+            <div id="listaCirurgias" class="space-y-3"></div>
         </div>
+    </section>
 
-    </div>
-
+    <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="app-card p-5">
+            <h2 class="text-lg font-extrabold text-slate-900 mb-4">Produtos por categoria</h2>
+            <div class="h-80"><canvas id="graficoCategorias"></canvas></div>
+        </div>
+        <div class="app-card p-5">
+            <h2 class="text-lg font-extrabold text-slate-900 mb-4">Entradas x Saídas</h2>
+            <div class="h-80"><canvas id="graficoMovimentacoes"></canvas></div>
+        </div>
+    </section>
 </div>
 
 @section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let graficoCategorias = null;
+    let graficoMovimentacoes = null;
 
-    <!-- CHART JS -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    carregarDashboard();
 
-    <script>
-
-        const API = "https://localhost:7004/api";
-
-        let graficoEstoque = null;
-        let graficoMovimentacoes = null;
-
-        // ========================
-        //  DATA
-        // =========================
-        document.getElementById("dataAtual").innerText =
-        new Date().toLocaleDateString("pt-BR");
-
-        // =========================
-        //  INIT
-        // =========================
-        carregarDashboard();
-
-        // =========================
-        //  DASHBOARD
-        // =========================
-        async function carregarDashboard() {
-
-        try {
-
-        const produtosResponse = await apiFetch(`${API}/produtos`);
-        const produtos = await produtosResponse.json();
-
-        const movResponse = await apiFetch(`${API}/movimentacoes`);
-        const movimentacoes = await movResponse.json();
-
-        atualizarCards(produtos, movimentacoes);
-
-        gerarAlertas(produtos);
-
-        gerarGraficoEstoque(produtos);
-
-        gerarGraficoMovimentacoes(movimentacoes);
-
-        }
-        catch (erro) {
-
-        console.error(erro);
-
-        alert("Erro ao carregar dashboard.");
-
-        }
+    async function carregarDashboard() {
+        const response = await apiFetch(`${API}/relatorios/dashboard`);
+        if (!response.ok) {
+            toast("Erro ao carregar dashboard.", "error");
+            return;
         }
 
-        // =========================
-        //  CARDS
-        // =========================
-        function atualizarCards(produtos, movimentacoes) {
+        const dados = await response.json();
+        preencherCards(dados);
+        renderizarAlertas(dados.alertas || []);
+        renderizarCirurgias(dados.proximasCirurgias || []);
+        desenharCategorias(dados.produtosPorCategoria || []);
+        desenharMovimentacoes(dados.entradas || 0, dados.saidas || 0);
+    }
 
-        const estoqueBaixo = produtos.filter(p =>
-        p.quantidade > 0 &&
-        p.quantidade <= 5
-        );
+    function preencherCards(dados) {
+        document.getElementById("totalProdutos").innerText = dados.totalProdutos;
+        document.getElementById("estoqueBaixo").innerText = dados.estoqueBaixo;
+        document.getElementById("produtosEsgotados").innerText = dados.produtosEsgotados;
+        document.getElementById("totalMovimentacoes").innerText = dados.totalMovimentacoes;
+        document.getElementById("valorTotalEstoque").innerText = Number(dados.valorTotalEstoque || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
 
-        const esgotados = produtos.filter(p =>
-        p.quantidade <= 0
-        );
-
-        document.getElementById("totalProdutos").innerText =
-        produtos.length;
-
-        document.getElementById("estoqueBaixo").innerText =
-        estoqueBaixo.length;
-
-        document.getElementById("produtosEsgotados").innerText =
-        esgotados.length;
-
-        document.getElementById("totalMovimentacoes").innerText =
-        movimentacoes.length;
-        }
-
-        // =========================
-        //  ALERTAS
-        // =========================
-        function gerarAlertas(produtos) {
-
+    function renderizarAlertas(alertas) {
         const lista = document.getElementById("listaAlertas");
-
         lista.innerHTML = "";
 
-        const alertas = produtos.filter(p =>
-        p.quantidade <= 5
-        );
-
         if (alertas.length === 0) {
-
-        lista.innerHTML = `
-        <div class="bg-green-100 text-green-700 p-4 rounded-xl">
-        Nenhum alerta no momento.
-        </div>
-        `;
-
-        return;
+            lista.innerHTML = `<div class="rounded-2xl bg-emerald-50 text-emerald-700 p-4 font-bold">Nenhum alerta no momento.</div>`;
+            return;
         }
 
-        alertas.forEach(produto => {
-
-        let cor = "yellow";
-        let mensagem = "Estoque Baixo";
-
-        if (produto.quantidade <= 0) {
-
-        cor = "red";
-        mensagem = "Produto Esgotado";
-        }
-
-        lista.innerHTML += `
-        <div class="border-l-4 border-${cor}-500 bg-${cor}-50 p-4 rounded-xl">
-
-        <div class="flex items-center justify-between">
-
-        <div>
-
-        <h3 class="font-bold text-${cor}-700">
-        ${produto.nome}
-        </h3>
-
-        <p class="text-sm text-gray-600">
-        ${mensagem}
-        </p>
-
-        </div>
-
-        <span class="font-bold text-${cor}-700">
-        ${produto.quantidade}
-        </span>
-
-        </div>
-
-        </div>
-        `;
+        alertas.slice(0, 8).forEach(p => {
+            const esgotado = p.quantidade <= 0;
+            lista.innerHTML += `
+                <div class="rounded-2xl border ${esgotado ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"} p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <div class="font-extrabold ${esgotado ? "text-red-700" : "text-amber-700"}">${p.nome}</div>
+                            <div class="text-xs text-slate-500">${p.categoria} · mínimo ${p.estoqueMinimo}</div>
+                        </div>
+                        <div class="text-xl font-extrabold ${esgotado ? "text-red-700" : "text-amber-700"}">${p.quantidade} ${p.unidadeMedida}</div>
+                    </div>
+                </div>`;
         });
+    }
+
+    function renderizarCirurgias(cirurgias) {
+        const lista = document.getElementById("listaCirurgias");
+        lista.innerHTML = "";
+
+        if (cirurgias.length === 0) {
+            lista.innerHTML = `<div class="rounded-2xl bg-slate-50 text-slate-500 p-4 font-bold">Sem cirurgias próximas.</div>`;
+            return;
         }
 
-        // =========================
-        //  GRÁFICO ESTOQUE
-        // =========================
-        function gerarGraficoEstoque(produtos) {
-
-        const ctx = document.getElementById("graficoEstoque");
-
-        if (graficoEstoque) {
-        graficoEstoque.destroy();
-        }
-
-        graficoEstoque = new Chart(ctx, {
-
-        type: 'bar',
-
-        data: {
-
-        labels: produtos.map(p => p.nome),
-
-        datasets: [{
-
-        label: 'Quantidade',
-
-        data: produtos.map(p => p.quantidade),
-
-        borderWidth: 1
-
-        }]
-        },
-
-        options: {
-
-        responsive: true,
-
-        plugins: {
-
-        legend: {
-        display: false
-        }
-
-        }
-        }
+        cirurgias.forEach(a => {
+            lista.innerHTML += `
+                <div class="rounded-2xl bg-blue-50 p-4">
+                    <div class="font-extrabold text-blue-800">${a.paciente}</div>
+                    <div class="text-sm text-slate-600">${a.procedimento}</div>
+                    <div class="text-xs text-slate-500 mt-2">${new Date(a.inicio).toLocaleString("pt-BR")}</div>
+                </div>`;
         });
-        }
+    }
 
-        // =========================
-        //  GRÁFICO MOVIMENTAÇÕES
-        // =========================
-        function gerarGraficoMovimentacoes(movimentacoes) {
+    function desenharCategorias(dados) {
+        const ctx = document.getElementById("graficoCategorias");
+        if (graficoCategorias) graficoCategorias.destroy();
 
-        const entradas = movimentacoes.filter(m =>
-        m.tipo === "ENTRADA"
-        ).length;
+        graficoCategorias = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: dados.map(x => x.categoria),
+                datasets: [{ data: dados.map(x => x.total), backgroundColor: "#2563eb", borderRadius: 8 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
 
-        const saidas = movimentacoes.filter(m =>
-        m.tipo === "SAIDA"
-        ).length;
-
+    function desenharMovimentacoes(entradas, saidas) {
         const ctx = document.getElementById("graficoMovimentacoes");
-
-        if (graficoMovimentacoes) {
-        graficoMovimentacoes.destroy();
-        }
+        if (graficoMovimentacoes) graficoMovimentacoes.destroy();
 
         graficoMovimentacoes = new Chart(ctx, {
-
-        type: 'doughnut',
-
-        data: {
-
-        labels: ['Entradas', 'Saídas'],
-
-        datasets: [{
-
-        data: [entradas, saidas],
-
-        borderWidth: 1
-
-        }]
-        },
-
-        options: {
-
-        responsive: true
-
-        }
+            type: "doughnut",
+            data: {
+                labels: ["Entradas", "Saídas"],
+                datasets: [{ data: [entradas, saidas], backgroundColor: ["#059669", "#dc2626"] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
         });
-        }
-
-    </script>
-
+    }
+</script>
 }

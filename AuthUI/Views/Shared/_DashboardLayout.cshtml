@@ -1,321 +1,193 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>@ViewData["Title"] - Dashboard</title>
+    <title>@ViewData["Title"] - AVA Manager</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-
-        body {
-        font-family: 'Manrope', sans-serif;
-        }
-
+        body { font-family: 'Manrope', sans-serif; }
         .menu-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px;
-        border-radius: 10px;
-        transition: 0.2s;
-        white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 12px;
+            border-radius: 12px;
+            color: #dbeafe;
+            transition: .18s ease;
         }
-
-        .menu-item:hover {
-        background: rgba(255,255,255,0.1);
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,.13);
+            color: #fff;
         }
-
-        .active {
-        background: rgba(255,255,255,0.15);
+        .app-card {
+            background: #fff;
+            border: 1px solid #e5edf7;
+            border-radius: 18px;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, .06);
         }
-
-        .menu-text {
-        transition: opacity 0.2s;
+        .field {
+            width: 100%;
+            border: 1px solid #dbe4ef;
+            border-radius: 12px;
+            padding: 10px 12px;
+            outline: none;
+            background: #fff;
         }
-
-        .collapsed .menu-text {
-        display: none;
+        .field:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
         }
-
-        .collapsed #logoText {
-        display: none;
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-weight: 700;
         }
-
-        .collapsed .menu-item {
-        justify-content: center;
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-soft {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-weight: 700;
         }
-
+        .table-wrap { overflow-x: auto; }
+        th { white-space: nowrap; }
+        td { vertical-align: top; }
     </style>
 </head>
 
-<body class="bg-gray-100 overflow-x-hidden">
+<body class="bg-slate-100 text-slate-800">
+    <button id="overlay" onclick="toggleSidebarMobile()" aria-label="Fechar menu" class="hidden fixed inset-0 bg-slate-950/50 z-40 lg:hidden"></button>
 
-    <!-- OVERLAY MOBILE -->
-    <button id="overlay"
-            onclick="toggleSidebarMobile()"
-            aria-label="Fechar menu"
-            class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden">
-    </button>
-
-    <!-- SIDEBAR -->
-    <aside id="sidebar"
-           class="fixed top-0 left-0 z-50 h-screen w-64 bg-blue-900 text-white shadow-xl transition-all duration-300">
-
-        <!-- HEADER -->
-        <div class="p-5 border-b border-blue-800 flex items-center justify-between">
-
-            <div class="flex items-center gap-3">
-
-                <i class="fa-solid fa-paw text-2xl"></i>
-
-                <span id="logoText"
-                      class="text-xl font-bold">
-                    AVA
-                </span>
-
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-950 text-white shadow-2xl transition-transform duration-300 lg:translate-x-0 -translate-x-full">
+        <div class="h-full flex flex-col">
+            <div class="p-5 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-blue-500 flex items-center justify-center">
+                        <i class="fa-solid fa-paw text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="font-extrabold text-lg leading-tight">AVA Manager</div>
+                        <div class="text-xs text-blue-200">Gestão interna da ONG</div>
+                    </div>
+                </div>
             </div>
 
-            <button onclick="toggleSidebar()"
-                    class="hidden md:block text-white text-lg">
-                &nbsp;☰
-            </button>
+            <nav class="p-4 space-y-1 flex-1">
+                <a href="/Home/Index" class="menu-item"><i class="fa fa-chart-line w-5"></i><span>Dashboard</span></a>
+                <a href="/Home/Produtos" class="menu-item"><i class="fa fa-boxes-stacked w-5"></i><span>Estoque</span></a>
+                <a href="/Home/Categorias" class="menu-item"><i class="fa fa-tags w-5"></i><span>Categorias</span></a>
+                <a href="/Home/Movimentacoes" class="menu-item"><i class="fa fa-right-left w-5"></i><span>Movimentações</span></a>
+                <a href="/Home/CentroCirurgico" class="menu-item"><i class="fa fa-calendar-check w-5"></i><span>Centro Cirúrgico</span></a>
+                <a href="/Home/Relatorios" class="menu-item"><i class="fa fa-file-lines w-5"></i><span>Relatórios</span></a>
+                <a href="/Home/Usuarios" class="menu-item"><i class="fa fa-user-shield w-5"></i><span>Usuários</span></a>
+            </nav>
 
-            <button onclick="toggleSidebarMobile()"
-                    class="md:hidden text-white text-lg">
-                ✕
-            </button>
-
-        </div>
-
-        <!-- MENU -->
-        <nav class="p-4 space-y-2">
-
-            <a href="/Home/Index" class="menu-item">
-                <i class="fa fa-house text-lg"></i>
-                <span class="menu-text">Home</span>
-            </a>
-
-            <a href="/Home/Produtos" class="menu-item">
-                <i class="fa fa-box text-lg"></i>
-                <span class="menu-text">Estoque</span>
-            </a>
-
-            <a href="/Home/Movimentacoes" class="menu-item">
-                <i class="fa fa-clock-rotate-left text-lg"></i>
-                <span class="menu-text">Movimentações</span>
-            </a>
-
-            <a href="/Home/Registrar" class="menu-item">
-                <i class="fa fa-users text-lg"></i>
-                <span class="menu-text">Registrar usuário</span>
-            </a>
-
-            <a href="#"
-                   id="logoutBtn"
-                   class="menu-item hover:bg-red-600 mt-6">
-
-                <i class="fa fa-right-from-bracket text-lg"></i>
-
-                <span class="menu-text">
+            <div class="p-4 border-t border-white/10">
+                <div class="rounded-2xl bg-white/8 p-3 mb-3">
+                    <div id="usuarioNome" class="font-bold text-sm truncate">Usuário</div>
+                    <div id="usuarioPerfil" class="text-xs text-blue-200">Perfil</div>
+                </div>
+                <button id="logoutBtn" class="w-full flex items-center justify-center gap-2 rounded-xl bg-red-500 hover:bg-red-600 px-4 py-3 font-bold">
+                    <i class="fa fa-right-from-bracket"></i>
                     Sair
-                </span>
-
-            </a>
-
-        </nav>
-
+                </button>
+            </div>
+        </div>
     </aside>
 
-    <!-- CONTEÚDO -->
-    <div id="content"
-         class="ml-0 md:ml-64 transition-all duration-300 min-h-screen">
-
-        <!-- TOPBAR -->
-        <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-
-            <div class="flex items-center gap-4">
-
-                <!-- BOTÃO MOBILE -->
-                <button onclick="toggleSidebarMobile()"
-                        class="md:hidden text-2xl text-gray-700">
-
-                    ☰
-
-                </button>
-
-                <h1 class="text-xl font-bold text-gray-800">
-                    @ViewData["Title"]
-                </h1>
-
+    <div class="lg:pl-72 min-h-screen">
+        <header class="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-slate-200">
+            <div class="px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <button onclick="toggleSidebarMobile()" class="lg:hidden w-10 h-10 rounded-xl bg-slate-100 text-slate-700">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <div class="min-w-0">
+                        <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 truncate">@ViewData["Title"]</h1>
+                        <p class="text-sm text-slate-500 hidden sm:block">Controle operacional da clínica veterinária popular</p>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-blue-700 font-bold text-sm">
+                    <i class="fa fa-shield-heart"></i>
+                    AVA
+                </div>
             </div>
-
         </header>
 
-        <!-- BODY -->
-        <main class="p-6">
+        <main class="p-4 sm:p-6">
             @RenderBody()
         </main>
-
     </div>
 
-    <script>
+    <div id="toast" class="fixed bottom-4 right-4 z-[80] hidden max-w-sm rounded-2xl px-4 py-3 shadow-2xl text-white"></div>
 
-        // =========================
-        //  TOKEN
-        // =========================
+    <script>
+        const API = "https://localhost:7004/api";
         const token = localStorage.getItem("token");
+        const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
 
         if (!token) {
-        window.location.href = "/Home/Login";
+            window.location.href = "/Home/Login";
         }
 
-        // =========================
-        // LOGOUT
-        // =========================
-        document.getElementById("logoutBtn")
-        .addEventListener("click", async (e) => {
+        if (usuario) {
+            document.getElementById("usuarioNome").innerText = usuario.name || usuario.email || "Usuário";
+            document.getElementById("usuarioPerfil").innerText = usuario.perfil || "Perfil";
+        }
 
-        e.preventDefault();
-
-        const confirmar = confirm("Deseja sair?");
-
-        if (!confirmar) return;
-
-        await fetch("https://localhost:7004/api/UserAuth/Logout", {
-        method: "POST"
+        document.querySelectorAll(".menu-item").forEach(link => {
+            const url = new URL(link.href);
+            if (url.pathname === window.location.pathname) link.classList.add("active");
         });
 
-        localStorage.removeItem("token");
-
-        window.location.href = "/Home/Login";
-        });
-
-        // =========================
-        //  MENU ATIVO
-        // =========================
-        const links = document.querySelectorAll(".menu-item");
-
-        links.forEach(link => {
-
-        if (link.href === window.location.href) {
-        link.classList.add("active");
-        }
-
-        });
-
-        // =========================
-        //  SIDEBAR DESKTOP
-        // =========================
-        let collapsed = false;
-
-        function toggleSidebar() {
-
-        const sidebar = document.getElementById("sidebar");
-
-        const content = document.getElementById("content");
-
-        collapsed = !collapsed;
-
-        if (collapsed) {
-
-        sidebar.classList.remove("w-64");
-
-        sidebar.classList.add("w-20");
-
-        sidebar.classList.add("collapsed");
-
-        content.classList.remove("md:ml-64");
-
-        content.classList.add("md:ml-20");
-
-        }
-        else {
-
-        sidebar.classList.add("w-64");
-
-        sidebar.classList.remove("w-20");
-
-        sidebar.classList.remove("collapsed");
-
-        content.classList.add("md:ml-64");
-
-        content.classList.remove("md:ml-20");
-        }
-        }
-
-        // =========================
-        //  SIDEBAR MOBILE
-        // =========================
         function toggleSidebarMobile() {
-
-        const sidebar = document.getElementById("sidebar");
-
-        const overlay = document.getElementById("overlay");
-
-        if (sidebar.classList.contains("-translate-x-full")) {
-
-        sidebar.classList.remove("-translate-x-full");
-
-        overlay.classList.remove("hidden");
-
-        }
-        else {
-
-        sidebar.classList.add("-translate-x-full");
-
-        overlay.classList.add("hidden");
-        }
+            document.getElementById("sidebar").classList.toggle("-translate-x-full");
+            document.getElementById("overlay").classList.toggle("hidden");
         }
 
-        // =========================
-        //  INIT MOBILE
-        // =========================
-        if (window.innerWidth < 768) {
-
-        document.getElementById("sidebar")
-        .classList.add("-translate-x-full");
+        function toast(message, type = "success") {
+            const el = document.getElementById("toast");
+            el.innerText = message;
+            el.className = "fixed bottom-4 right-4 z-[80] max-w-sm rounded-2xl px-4 py-3 shadow-2xl text-white " + (type === "error" ? "bg-red-600" : "bg-slate-900");
+            el.classList.remove("hidden");
+            setTimeout(() => el.classList.add("hidden"), 3200);
         }
 
-        // =========================
-        //  API FETCH
-        // =========================
         async function apiFetch(url, options = {}) {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + localStorage.getItem("token"),
+                    ...options.headers
+                }
+            });
 
-        const token = localStorage.getItem("token");
+            if (response.status === 401 || response.status === 403) {
+                localStorage.removeItem("token");
+                localStorage.removeItem("usuario");
+                window.location.href = "/Home/Login";
+            }
 
-        const response = await fetch(url, {
-
-        ...options,
-
-        headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token,
-        ...options.headers
+            return response;
         }
 
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            await fetch(`${API}/UserAuth/Logout`, { method: "POST" });
+            localStorage.removeItem("token");
+            localStorage.removeItem("usuario");
+            window.location.href = "/Home/Login";
         });
-
-        if (response.status === 401) {
-
-        localStorage.removeItem("token");
-
-        window.location.href = "/Home/Login";
-        }
-
-        return response;
-        }
-
     </script>
 
     @RenderSection("Scripts", required: false)
-
 </body>
 </html>

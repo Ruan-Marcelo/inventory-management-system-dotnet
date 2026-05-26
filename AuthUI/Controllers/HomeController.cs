@@ -23,6 +23,10 @@ namespace AuthUI.Controllers
         {
             return View();
         }
+       public IActionResult Usuarios()
+        {
+            return View();
+        }
        public IActionResult Login()
         {
             return View();
@@ -33,6 +37,18 @@ namespace AuthUI.Controllers
             return View();
         }
         public IActionResult Movimentacoes()
+        {
+            return View();
+        }
+        public IActionResult Categorias()
+        {
+            return View();
+        }
+        public IActionResult CentroCirurgico()
+        {
+            return View();
+        }
+        public IActionResult Relatorios()
         {
             return View();
         }

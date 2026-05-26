@@ -1,0 +1,111 @@
+@{
+    ViewData["Title"] = "Categorias";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
+    <section class="app-card p-5">
+        <h2 class="text-lg font-extrabold text-slate-900 mb-1">Nova categoria</h2>
+        <p class="text-sm text-slate-500 mb-5">Organize o estoque por grupos de uso.</p>
+
+        <div class="space-y-4">
+            <input id="nome" class="field" placeholder="Nome da categoria" />
+            <textarea id="descricao" class="field min-h-28" placeholder="Descrição"></textarea>
+            <button onclick="salvarCategoria()" class="btn-primary w-full">
+                <i class="fa fa-save mr-2"></i>Salvar
+            </button>
+        </div>
+    </section>
+
+    <section class="app-card table-wrap">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-slate-600">
+                <tr>
+                    <th class="p-4 text-left">Categoria</th>
+                    <th class="p-4 text-left">Descrição</th>
+                    <th class="p-4 text-left">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaCategorias"></tbody>
+        </table>
+    </section>
+</div>
+
+@section Scripts {
+<script>
+    let categorias = [];
+    let editandoId = null;
+
+    carregarCategorias();
+
+    async function carregarCategorias() {
+        const response = await apiFetch(`${API}/categorias`);
+        categorias = response.ok ? await response.json() : [];
+        renderizar();
+    }
+
+    function renderizar() {
+        const tabela = document.getElementById("tabelaCategorias");
+        tabela.innerHTML = "";
+
+        if (categorias.length === 0) {
+            tabela.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-500">Nenhuma categoria cadastrada.</td></tr>`;
+            return;
+        }
+
+        categorias.forEach(c => {
+            tabela.innerHTML += `
+                <tr class="border-t border-slate-100">
+                    <td class="p-4 font-extrabold text-slate-900">${c.nome}</td>
+                    <td class="p-4 text-slate-600">${c.descricao || "Sem descrição"}</td>
+                    <td class="p-4">
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick='editar(${JSON.stringify(c)})' class="rounded-lg bg-amber-500 text-white px-3 py-2 font-bold">Editar</button>
+                            <button onclick="inativar(${c.id})" class="rounded-lg bg-slate-800 text-white px-3 py-2 font-bold">Inativar</button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    async function salvarCategoria() {
+        const categoria = {
+            nome: document.getElementById("nome").value,
+            descricao: document.getElementById("descricao").value,
+            ativo: true
+        };
+
+        const response = editandoId
+            ? await apiFetch(`${API}/categorias/${editandoId}`, { method: "PUT", body: JSON.stringify({ id: editandoId, ...categoria }) })
+            : await apiFetch(`${API}/categorias`, { method: "POST", body: JSON.stringify(categoria) });
+
+        if (!response.ok) {
+            toast(await response.text(), "error");
+            return;
+        }
+
+        editandoId = null;
+        document.getElementById("nome").value = "";
+        document.getElementById("descricao").value = "";
+        toast("Categoria salva.");
+        carregarCategorias();
+    }
+
+    function editar(categoria) {
+        editandoId = categoria.id;
+        document.getElementById("nome").value = categoria.nome || "";
+        document.getElementById("descricao").value = categoria.descricao || "";
+    }
+
+    async function inativar(id) {
+        if (!confirm("Deseja inativar esta categoria?")) return;
+        const response = await apiFetch(`${API}/categorias/${id}`, { method: "DELETE" });
+        if (!response.ok) {
+            toast(await response.text(), "error");
+            return;
+        }
+        toast("Categoria inativada.");
+        carregarCategorias();
+    }
+</script>
+}
