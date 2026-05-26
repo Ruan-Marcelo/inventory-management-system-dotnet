@@ -18,6 +18,7 @@ namespace AuthAPI.Controllers
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly string _jwtKey;
         private readonly string? _jwtIssuer;
         private readonly string? _jwtAudience;
@@ -25,11 +26,13 @@ namespace AuthAPI.Controllers
 
         public UserAuthController(UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
+            RoleManager<IdentityRole> roleManager,
             IConfiguration configuration)
         {
 
             _signInManager = signInManager;
             _userManager = userManager;
+            _roleManager = roleManager;
             _jwtKey = configuration["Jwt:Key"];
             _jwtIssuer = configuration["Jwt:Issuer"];
             _jwtAudience = configuration["Jwt:Audience"];
@@ -42,6 +45,12 @@ namespace AuthAPI.Controllers
         {
             try
             {
+                var existeUsuario = _userManager.Users.Any();
+                if (existeUsuario && !User.IsInRole("Admin"))
+                {
+                    return Forbid();
+                }
+
                 if (registerModel == null
                     || string.IsNullOrEmpty(registerModel.Name)
                     || string.IsNullOrEmpty(registerModel.Email)
@@ -49,6 +58,11 @@ namespace AuthAPI.Controllers
                 {
                     return BadRequest("Dados de registro inválidos");
                 }
+
+                var perfisPermitidos = new[] { "Admin", "Funcionario", "VeterinarioParceiro" };
+                var perfil = perfisPermitidos.Contains(registerModel.Perfil)
+                    ? registerModel.Perfil
+                    : "Funcionario";
 
                 var existingUser = await _userManager.FindByEmailAsync(registerModel.Email);
                 if (existingUser != null)
@@ -61,7 +75,11 @@ namespace AuthAPI.Controllers
                 {
                     UserName = registerModel.Email,
                     Email = registerModel.Email,
-                    Name = registerModel.Name
+                    Name = registerModel.Name,
+                    Perfil = perfil,
+                    ExpiraEm = perfil == "VeterinarioParceiro" ? registerModel.ExpiraEm : null,
+                    Ativo = true,
+                    EmailConfirmed = true
                 };
 
                 var result = await _userManager.CreateAsync(user, registerModel.Password);
@@ -70,11 +88,26 @@ namespace AuthAPI.Controllers
                 {
                     return BadRequest(result.Errors);
                 }
+
+                if (!await _roleManager.RoleExistsAsync(perfil))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(perfil));
+                }
+
+                await _userManager.AddToRoleAsync(user, perfil);
                 //200
 
-                return Ok("Usuário criado com sucesso");
+                return Ok(new
+                {
+                    mensagem = "Usuário criado com sucesso",
+                    user.Id,
+                    user.Name,
+                    user.Email,
+                    user.Perfil,
+                    user.ExpiraEm
+                });
             }
-            catch (Exception ex)
+            catch
             {
                 return StatusCode(500, "Erro interno no servidor ao criar usuário");
             }
@@ -90,6 +123,12 @@ namespace AuthAPI.Controllers
                 //401
                 return Unauthorized(new { success = false, message = "Nome de usuário ou senha inválidos" });
             }
+
+            if (!user.Ativo || (user.ExpiraEm.HasValue && user.ExpiraEm.Value < DateTime.Now))
+            {
+                return Unauthorized(new { success = false, message = "Usuário inativo ou expirado" });
+            }
+
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginModel.Password, false);
             if (!result.Succeeded)
             {
@@ -98,8 +137,20 @@ namespace AuthAPI.Controllers
             }
 
             //200
-            var token = GeneratedJwtToken(user);
-            return Ok(new { success = true, token });
+            var token = await GeneratedJwtToken(user);
+            return Ok(new
+            {
+                success = true,
+                token,
+                usuario = new
+                {
+                    user.Id,
+                    user.Name,
+                    user.Email,
+                    user.Perfil,
+                    user.ExpiraEm
+                }
+            });
         }
 
         [HttpPost("Logout")]
@@ -109,15 +160,22 @@ namespace AuthAPI.Controllers
             await _signInManager.SignOutAsync();
             return Ok("Usuário desconectado com sucesso.");
         }
-        private string GeneratedJwtToken(ApplicationUser user)
+        private async Task<string> GeneratedJwtToken(ApplicationUser user)
         {
-            var claims = new[]
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub ,user.Id),
-                new Claim(JwtRegisteredClaimNames.Email , user.Email),
-                new Claim("Name" , user.Name),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim("Name", user.Name),
+                new Claim("Perfil", user.Perfil),
                 new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
             };
+
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);//sigilo d token e segurança

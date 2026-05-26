@@ -13,6 +13,12 @@ namespace AuthAPI.Models
 
         public int Quantidade { get; set; }
 
+        public int EstoqueMinimo { get; set; } = 5;
+
+        public string UnidadeMedida { get; set; } = "un";
+
+        public string? CodigoInterno { get; set; }
+
         public bool Ativo { get; set; } = true;
 
         public int? CategoriaId { get; set; }

@@ -1,11 +1,10 @@
-﻿namespace AuthAPI.Models
+namespace AuthAPI.Models
 {
-    public class RegisterModel
+    public class UsuarioUpdateModel
     {
         public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
         public string Perfil { get; set; } = "Funcionario";
+        public bool Ativo { get; set; } = true;
         public DateTime? ExpiraEm { get; set; }
     }
 }

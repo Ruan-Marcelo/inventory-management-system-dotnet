@@ -8,10 +8,9 @@ namespace AuthAPI.Models
 
         public int ProdutoId { get; set; }
 
-        [JsonIgnore]
         public Produto? Produto { get; set; }
 
-        public string Tipo { get; set; } // entrada e saida boy
+        public string Tipo { get; set; } = string.Empty;
 
         public int Quantidade { get; set; }
 

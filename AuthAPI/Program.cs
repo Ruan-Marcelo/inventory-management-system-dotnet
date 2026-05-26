@@ -67,6 +67,8 @@ builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 
+await SeedIdentityAsync(app.Services);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -81,8 +83,47 @@ app.UseCors("AllowSpecificOrigin");
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+static async Task SeedIdentityAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    string[] roles = ["Admin", "Funcionario", "VeterinarioParceiro"];
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+
+    if (!userManager.Users.Any())
+    {
+        var admin = new ApplicationUser
+        {
+            UserName = "admin@ava.local",
+            Email = "admin@ava.local",
+            Name = "Administrador AVA",
+            Perfil = "Admin",
+            Ativo = true,
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(admin, "Admin@123");
+
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(admin, "Admin");
+        }
+    }
+}

@@ -45,8 +45,14 @@ public class MovimentacoesController : ControllerBase
     {
         var produto = await _context.Produtos.FindAsync(mov.ProdutoId);
 
-        if (produto == null)
+        if (produto == null || !produto.Ativo)
             return NotFound("Produto não encontrado");
+
+        if (mov.Quantidade <= 0)
+            return BadRequest("Quantidade deve ser maior que zero");
+
+        if (mov.Tipo != "ENTRADA" && mov.Tipo != "SAIDA")
+            return BadRequest("Tipo de movimentação inválido");
 
         // pega usuário logado
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -71,7 +77,7 @@ public class MovimentacoesController : ControllerBase
         foreach (var usuario in usuarios)
         {
             // ESTOQUE BAIXO
-            if (produto.Quantidade <= 5 &&
+            if (produto.Quantidade <= produto.EstoqueMinimo &&
                 produto.Quantidade > 0 &&
                 !produto.EmailEstoqueBaixoEnviado)
             {
@@ -85,7 +91,8 @@ public class MovimentacoesController : ControllerBase
                         O produto <b>{produto.Nome}</b>
                         está com apenas
                         <b>{produto.Quantidade}</b>
-                        unidades.
+                        {produto.UnidadeMedida}. O mínimo configurado é
+                        <b>{produto.EstoqueMinimo}</b>.
                     </p>
                     "
                 );
@@ -115,7 +122,7 @@ public class MovimentacoesController : ControllerBase
         }
 
         // RESETA ALERTAS
-        if (produto.Quantidade > 5)
+        if (produto.Quantidade > produto.EstoqueMinimo)
         {
             produto.EmailEstoqueBaixoEnviado = false;
             produto.EmailProdutoZeradoEnviado = false;
