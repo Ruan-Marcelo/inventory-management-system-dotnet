@@ -12,7 +12,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("https://localhost:7151") // Replace with your frontend URL
+        policy.WithOrigins("https://localhost:7151", "http://localhost:5013")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -33,11 +33,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
 
-    options.Password.RequireDigit = false;
-    options.Password.RequireLowercase = false;
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
     options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequiredLength = 1;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 6;
     options.Password.RequiredUniqueChars = 0;
 
 }).AddEntityFrameworkStores<ApplicationDbContext>()
@@ -58,8 +58,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.
-        GetBytes(builder.Configuration["Jwt:Key"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+            builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key não configurada")))
     };
 });
 
@@ -96,6 +96,7 @@ static async Task SeedIdentityAsync(IServiceProvider services)
     using var scope = services.CreateScope();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
     string[] roles = ["Admin", "Funcionario", "VeterinarioParceiro"];
 
@@ -125,5 +126,17 @@ static async Task SeedIdentityAsync(IServiceProvider services)
         {
             await userManager.AddToRoleAsync(admin, "Admin");
         }
+    }
+
+    if (!db.Categorias.Any())
+    {
+        db.Categorias.AddRange(
+            new AuthAPI.Models.Categoria { Nome = "Medicamentos", Descricao = "Remédios, vacinas e itens clínicos" },
+            new AuthAPI.Models.Categoria { Nome = "Limpeza", Descricao = "Produtos de limpeza e higienização" },
+            new AuthAPI.Models.Categoria { Nome = "Alimentos", Descricao = "Rações e alimentos" },
+            new AuthAPI.Models.Categoria { Nome = "Materiais cirúrgicos", Descricao = "Itens usados em procedimentos" }
+        );
+
+        await db.SaveChangesAsync();
     }
 }

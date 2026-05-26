@@ -1,25 +1,54 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Mail;
 
 namespace AuthAPI.Services
 {
     public class EmailService
     {
-        public async Task EnviarEmail(string destino, string assunto, string mensagem)
+        private readonly IConfiguration _configuration;
+
+        public EmailService(IConfiguration configuration)
         {
-            var smtp = new SmtpClient("smtp.gmail.com")
+            _configuration = configuration;
+        }
+
+        public async Task EnviarEmail(string? destino, string assunto, string mensagem)
+        {
+            if (string.IsNullOrWhiteSpace(destino))
             {
-                Port = 587,
-                Credentials = new NetworkCredential(
-                    "zikaluke9@gmail.com",
-                    "abcd efgh ijkl mnop"
-                ),
+                return;
+            }
+
+            var enabled = _configuration.GetValue<bool>("Email:Enabled");
+            if (!enabled)
+            {
+                return;
+            }
+
+            var host = _configuration["Email:SmtpHost"];
+            var user = _configuration["Email:User"];
+            var password = _configuration["Email:Password"];
+            var from = _configuration["Email:From"] ?? user;
+            var port = _configuration.GetValue("Email:Port", 587);
+
+            if (string.IsNullOrWhiteSpace(host) ||
+                string.IsNullOrWhiteSpace(user) ||
+                string.IsNullOrWhiteSpace(password) ||
+                string.IsNullOrWhiteSpace(from))
+            {
+                return;
+            }
+
+            using var smtp = new SmtpClient(host)
+            {
+                Port = port,
+                Credentials = new NetworkCredential(user, password),
                 EnableSsl = true
             };
 
-            var mail = new MailMessage
+            using var mail = new MailMessage
             {
-                From = new MailAddress("lucasborgws@gmail.com"),
+                From = new MailAddress(from),
                 Subject = assunto,
                 Body = mensagem,
                 IsBodyHtml = true
@@ -27,7 +56,7 @@ namespace AuthAPI.Services
 
             mail.To.Add(destino);
 
-            //await smtp.SendMailAsync(mail);
+            await smtp.SendMailAsync(mail);
         }
     }
 }

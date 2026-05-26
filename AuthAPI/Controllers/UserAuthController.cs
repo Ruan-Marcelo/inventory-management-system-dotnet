@@ -33,10 +33,10 @@ namespace AuthAPI.Controllers
             _signInManager = signInManager;
             _userManager = userManager;
             _roleManager = roleManager;
-            _jwtKey = configuration["Jwt:Key"];
+            _jwtKey = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key não configurada");
             _jwtIssuer = configuration["Jwt:Issuer"];
             _jwtAudience = configuration["Jwt:Audience"];
-            _JwtExpiry = int.Parse(configuration["Jwt:ExpiryMinutes"]);
+            _JwtExpiry = int.TryParse(configuration["Jwt:ExpiryMinutes"], out var expiry) ? expiry : 60;
         }
 
 
