@@ -108,9 +108,11 @@ static async Task SeedIdentityAsync(IServiceProvider services)
         }
     }
 
-    if (!userManager.Users.Any())
+    var admin = await userManager.FindByEmailAsync("admin@ava.local");
+
+    if (admin == null)
     {
-        var admin = new ApplicationUser
+        admin = new ApplicationUser
         {
             UserName = "admin@ava.local",
             Email = "admin@ava.local",
@@ -123,6 +125,21 @@ static async Task SeedIdentityAsync(IServiceProvider services)
         var result = await userManager.CreateAsync(admin, "Admin@123");
 
         if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(admin, "Admin");
+        }
+    }
+    else
+    {
+        admin.Name = string.IsNullOrWhiteSpace(admin.Name) ? "Administrador AVA" : admin.Name;
+        admin.Perfil = "Admin";
+        admin.Ativo = true;
+        admin.ExpiraEm = null;
+        admin.EmailConfirmed = true;
+
+        await userManager.UpdateAsync(admin);
+
+        if (!await userManager.IsInRoleAsync(admin, "Admin"))
         {
             await userManager.AddToRoleAsync(admin, "Admin");
         }
