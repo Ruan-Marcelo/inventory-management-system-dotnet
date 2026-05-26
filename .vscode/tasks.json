@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Rodar API",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "AuthAPI/AuthAPI.csproj",
+        "--launch-profile",
+        "https"
+      ],
+      "isBackground": true,
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "authentication"
+      }
+    },
+    {
+      "label": "Rodar UI",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "AuthUI/AuthUI.csproj",
+        "--launch-profile",
+        "https"
+      ],
+      "isBackground": true,
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "authentication"
+      }
+    },
+    {
+      "label": "Rodar API + UI",
+      "dependsOn": [
+        "Rodar API",
+        "Rodar UI"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}
