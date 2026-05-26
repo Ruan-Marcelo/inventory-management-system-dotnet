@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Rodar API + UI",
+    "Projects": [
+      {
+        "Path": "AuthAPI\\AuthAPI.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "AuthUI\\AuthUI.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
